@@ -50,6 +50,7 @@ services:
     ports:
       - "${PORT:-3003}:3000"
     environment:
+      PORT: 3000
       APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
       DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/vocero
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
