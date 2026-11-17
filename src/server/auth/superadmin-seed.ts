@@ -30,22 +30,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
 }): Promise<SuperAdminSeedResult> {
   const db = getDb();
 
-  // 1. Verificar si ya existe algún usuario con platformRole "superadmin"
-  const existingSuperAdmin = await db
-    .select({ id: schema.user.id, email: schema.user.email })
-    .from(schema.user)
-    .where(eq(schema.user.platformRole, "superadmin"))
-    .limit(1);
-
-  if (existingSuperAdmin[0]) {
-    return {
-      created: false,
-      email: existingSuperAdmin[0].email,
-      message: "Ya existe un usuario con rol SuperAdmin en el sistema",
-    };
-  }
-
-  // 2. Parámetros del SuperAdmin
+  // 1. Parámetros del SuperAdmin
   const email = (
     opts?.email ||
     process.env.SUPERADMIN_EMAIL ||
@@ -61,31 +46,84 @@ export async function ensureDefaultSuperAdmin(opts?: {
     throw new Error("La contraseña del SuperAdmin debe tener al menos 8 caracteres");
   }
 
-  // 3. Verificar si el usuario ya existe por email (ej. creado anteriormente como user regular)
+  const hashedPassword = await hashPassword(password);
+
+  // 2. Verificar si el usuario ya existe por email (ej. creado vía web o en seed anterior)
   const existingUser = await db
-    .select({ id: schema.user.id, email: schema.user.email })
+    .select({ id: schema.user.id, email: schema.user.email, platformRole: schema.user.platformRole })
     .from(schema.user)
     .where(eq(schema.user.email, email))
     .limit(1);
 
   if (existingUser[0]) {
-    // Promover el usuario existente a superadmin
+    const u = existingUser[0];
     await db
       .update(schema.user)
-      .set({ platformRole: "superadmin", updatedAt: new Date() })
-      .where(eq(schema.user.id, existingUser[0].id));
+      .set({ platformRole: "superadmin", name, updatedAt: new Date() })
+      .where(eq(schema.user.id, u.id));
 
-    console.log(`[superadmin] Usuario existente ${email} promovido a SuperAdmin.`);
+    // Sincronizar contraseña en account
+    await db
+      .update(schema.account)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(schema.account.userId, u.id));
+
+    console.log(`[superadmin] ✅ SuperAdmin verificado y sincronizado: ${email}`);
     return {
-      created: true,
+      created: false,
       email,
-      message: `Usuario existente ${email} promovido a SuperAdmin`,
+      message: `SuperAdmin ${email} verificado y sincronizado`,
     };
   }
 
-  // 4. Crear nuevo usuario SuperAdmin desde cero
+  // 3. Si se configuró un email personalizado pero existe el placeholder "admin@wachato.com", migrarlo
+  if (email !== "admin@wachato.com") {
+    const placeholderUser = await db
+      .select({ id: schema.user.id, email: schema.user.email })
+      .from(schema.user)
+      .where(eq(schema.user.email, "admin@wachato.com"))
+      .limit(1);
+
+    if (placeholderUser[0]) {
+      const p = placeholderUser[0];
+      await db
+        .update(schema.user)
+        .set({ email, name, platformRole: "superadmin", updatedAt: new Date() })
+        .where(eq(schema.user.id, p.id));
+
+      await db
+        .update(schema.account)
+        .set({ password: hashedPassword, updatedAt: new Date() })
+        .where(eq(schema.account.userId, p.id));
+
+      console.log(`[superadmin] ✅ SuperAdmin migrado de admin@wachato.com a: ${email}`);
+      return {
+        created: true,
+        email,
+        message: `SuperAdmin migrado de admin@wachato.com a ${email}`,
+      };
+    }
+  }
+
+  // 4. Si ya existe otro SuperAdmin y no se especificó un email personalizado
+  if (!opts?.email && !process.env.SUPERADMIN_EMAIL) {
+    const otherSuperAdmin = await db
+      .select({ id: schema.user.id, email: schema.user.email })
+      .from(schema.user)
+      .where(eq(schema.user.platformRole, "superadmin"))
+      .limit(1);
+
+    if (otherSuperAdmin[0]) {
+      return {
+        created: false,
+        email: otherSuperAdmin[0].email,
+        message: "Ya existe un usuario con rol SuperAdmin en el sistema",
+      };
+    }
+  }
+
+  // 5. Crear nuevo usuario SuperAdmin desde cero
   const userId = newId("user");
-  const hashedPassword = await hashPassword(password);
 
   await db.transaction(async (tx) => {
     // A) Insertar usuario

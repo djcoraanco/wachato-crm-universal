@@ -46,8 +46,7 @@ export default function RegisterPage() {
       <CardHeader>
         <CardTitle>Crear cuenta</CardTitle>
         <CardDescription>
-          El primer registro crea la organización de esta instancia y queda
-          como propietario.
+          Crea tu cuenta de empresa para empezar a gestionar tus canales.
         </CardDescription>
       </CardHeader>
       <CardContent>

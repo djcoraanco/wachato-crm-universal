@@ -70,9 +70,9 @@ export default function LoginPage() {
             {loading ? "Entrando…" : "Entrar"}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            ¿Primera vez aquí?{" "}
+            ¿No tienes una cuenta?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              Crear la cuenta inicial
+              Crear cuenta
             </Link>
           </p>
         </form>

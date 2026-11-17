@@ -42,9 +42,33 @@ const RATE_LIMITED_PATHS = new Set(["/sign-in/email", "/sign-up/email"]);
 
 function createAuth() {
   const env = getEnv();
+  const rawBase = env.APP_BASE_URL.replace(/\/+$/, "");
+  const httpBase = rawBase.replace(/^https:\/\//, "http://");
+  const httpsBase = rawBase.replace(/^http:\/\//, "https://");
+
+  const trustedOrigins = Array.from(
+    new Set([
+      rawBase,
+      httpBase,
+      httpsBase,
+      `${httpBase}:3000`,
+      `${httpBase}:3003`,
+      `${httpsBase}:3000`,
+      `${httpsBase}:3003`,
+      "http://localhost:3000",
+      "http://localhost:3003",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:3003",
+    ])
+  );
+
   return betterAuth({
     baseURL: env.APP_BASE_URL,
     secret: env.BETTER_AUTH_SECRET,
+    trustedOrigins,
+    advanced: {
+      useSecureCookies: false,
+    },
     database: drizzleAdapter(getDb(), {
       provider: "pg",
       schema: {
