@@ -3,6 +3,7 @@ import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/db/ids";
 import { scoped } from "@/lib/db/tenant";
 import type { ImportRow } from "@/lib/contact-import";
+import { assertCanAddContact } from "@/server/billing/gating";
 
 /** Postgres admite ~65k parámetros por consulta; con margen de sobra. */
 const CHUNK = 500;
@@ -80,6 +81,7 @@ export async function importContacts(
     const fresh = batch.filter((r) => !known.has(r.phone));
     let insertedIds: string[] = [];
     if (fresh.length > 0) {
+      await assertCanAddContact(organizationId, fresh.length);
       const inserted = await db
         .insert(schema.contact)
         .values(

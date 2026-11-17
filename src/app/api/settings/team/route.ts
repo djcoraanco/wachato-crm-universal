@@ -5,6 +5,7 @@ import { getAuth, runInternalSignup } from "@/lib/auth";
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/db/ids";
 import { scoped } from "@/lib/db/tenant";
+import { assertCanAddTeamMember, QuotaExceededError } from "@/server/billing/gating";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,19 @@ export const POST = withAuth(async (session, req: Request) => {
   }
   const body = await parseBody(req, createSchema);
   if (!body.ok) return body.response;
+
+  try {
+    await assertCanAddTeamMember(session.organizationId);
+  } catch (err) {
+    if (err instanceof QuotaExceededError) {
+      return apiError(
+        402,
+        "team_quota_exceeded",
+        `Tu plan actual solo permite hasta ${err.limit} miembros de equipo. Actualiza tu plan en Ajustes → Facturación para invitar más miembros.`
+      );
+    }
+    throw err;
+  }
 
   const auth = getAuth();
   let newUserId: string;

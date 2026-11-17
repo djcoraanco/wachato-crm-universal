@@ -60,4 +60,6 @@ export type InstalledModuleDto = ModuleManifest & {
   status: "active" | "disabled" | "uninstalled";
   installedAt?: string;
   config?: Record<string, unknown>;
+  isAllowedByPlan?: boolean;
+  requiredTier?: string;
 };

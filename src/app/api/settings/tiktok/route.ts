@@ -12,6 +12,7 @@ import {
 import { ensureWebhookForOrg } from "@/server/zernio/conexiones";
 import { accountHealth, zernioAccountName } from "@/server/zernio/cuentas";
 import { resolveZernioAccount } from "@/server/zernio/guardar";
+import { assertCanAddChannel, QuotaExceededError } from "@/server/billing/gating";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,22 @@ export const PUT = withAuth(async (session, req: Request) => {
   if (!cuenta.ok) return cuenta.response;
 
   const previa = await getTiktokCredentialsByOrg(session.organizationId);
+
+  if (!previa) {
+    try {
+      await assertCanAddChannel(session.organizationId, "tiktok");
+    } catch (err) {
+      if (err instanceof QuotaExceededError) {
+        return apiError(
+          402,
+          "channel_quota_exceeded",
+          `Tu plan actual solo permite ${err.limit} canal (WhatsApp). Actualiza al Plan Pro o superior para conectar TikTok.`
+        );
+      }
+      throw err;
+    }
+  }
+
   const username =
     (cuenta.account.username ?? body.data.username)?.replace(/^@/, "") || null;
   await saveTiktokCredentials({

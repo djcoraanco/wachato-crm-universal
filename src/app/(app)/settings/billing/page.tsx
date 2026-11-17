@@ -34,8 +34,27 @@ interface PlanItem {
   };
 }
 
+interface QuotaMetric {
+  current: number;
+  limit: number;
+  remaining: number;
+  percentage: number;
+}
+
+interface QuotaSummary {
+  plan: { id: string; name: string; slug: string; tier: string } | null;
+  periodMonth: string;
+  quotas: {
+    contacts: QuotaMetric;
+    teamMembers: QuotaMetric;
+    channels: QuotaMetric;
+    aiTokens: QuotaMetric;
+  };
+}
+
 export default function BillingPage() {
   const [plans, setPlans] = useState<PlanItem[]>([]);
+  const [usage, setUsage] = useState<QuotaSummary | null>(null);
   const [_providers, setProviders] = useState<{ stripe: boolean; paypal: boolean }>({
     stripe: false,
     paypal: false,
@@ -46,11 +65,14 @@ export default function BillingPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/billing/plans")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.plans) setPlans(data.plans);
-        if (data.providers) setProviders(data.providers);
+    Promise.all([
+      fetch("/api/billing/plans").then((r) => r.json()),
+      fetch("/api/billing/usage").then((r) => r.json()).catch(() => null),
+    ])
+      .then(([plansData, usageData]) => {
+        if (plansData?.plans) setPlans(plansData.plans);
+        if (plansData?.providers) setProviders(plansData.providers);
+        if (usageData?.summary) setUsage(usageData.summary);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Error cargando planes"))
       .finally(() => setLoading(false));
@@ -150,6 +172,138 @@ export default function BillingPage() {
         <div className="p-4 rounded-xl bg-red-950/40 border border-red-800 text-red-200 text-sm flex items-center gap-3">
           <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {/* Métricas de Uso y Cuotas en Tiempo Real */}
+      {usage && (
+        <div className="rounded-2xl border border-[#243C4A] bg-[#13222B]/80 p-5 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#243C4A]/60 pb-3">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#00C4C0]">
+                Uso en Tiempo Real
+              </span>
+              <h3 className="text-base font-bold text-white mt-0.5">
+                Plan Actual:{" "}
+                <span className="text-[#00C4C0]">
+                  {usage.plan?.name ?? "Starter"}
+                </span>{" "}
+                <span className="text-xs text-[#8BA4AE] font-normal">
+                  (Ciclo {usage.periodMonth})
+                </span>
+              </h3>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Contactos */}
+            <div className="rounded-xl border border-[#243C4A]/50 bg-[#0D1920]/60 p-3.5 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#8BA4AE] font-medium">Contactos</span>
+                <span className="font-bold text-white">
+                  {usage.quotas.contacts.current.toLocaleString()} /{" "}
+                  {usage.quotas.contacts.limit === -1
+                    ? "∞"
+                    : usage.quotas.contacts.limit.toLocaleString()}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#1A2E39] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${usage.quotas.contacts.percentage}%`,
+                    backgroundColor:
+                      usage.quotas.contacts.percentage >= 90
+                        ? "#EF4444"
+                        : usage.quotas.contacts.percentage >= 70
+                        ? "#F59E0B"
+                        : "#00C4C0",
+                  }}
+                />
+              </div>
+              <div className="text-[11px] text-[#8BA4AE]">
+                {usage.quotas.contacts.percentage}% utilizado
+              </div>
+            </div>
+
+            {/* Tokens IA */}
+            <div className="rounded-xl border border-[#243C4A]/50 bg-[#0D1920]/60 p-3.5 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#8BA4AE] font-medium">Tokens IA / mes</span>
+                <span className="font-bold text-white">
+                  {Math.round(usage.quotas.aiTokens.current / 1000)}k /{" "}
+                  {usage.quotas.aiTokens.limit === -1
+                    ? "∞"
+                    : `${Math.round(usage.quotas.aiTokens.limit / 1000)}k`}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#1A2E39] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${usage.quotas.aiTokens.percentage}%`,
+                    backgroundColor:
+                      usage.quotas.aiTokens.percentage >= 90
+                        ? "#EF4444"
+                        : usage.quotas.aiTokens.percentage >= 70
+                        ? "#F59E0B"
+                        : "#00C4C0",
+                  }}
+                />
+              </div>
+              <div className="text-[11px] text-[#8BA4AE]">
+                {usage.quotas.aiTokens.percentage}% utilizado
+              </div>
+            </div>
+
+            {/* Canales */}
+            <div className="rounded-xl border border-[#243C4A]/50 bg-[#0D1920]/60 p-3.5 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#8BA4AE] font-medium">Canales Conectados</span>
+                <span className="font-bold text-white">
+                  {usage.quotas.channels.current} /{" "}
+                  {usage.quotas.channels.limit === -1
+                    ? "∞"
+                    : usage.quotas.channels.limit}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#1A2E39] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#00C4C0] transition-all duration-500"
+                  style={{ width: `${usage.quotas.channels.percentage}%` }}
+                />
+              </div>
+              <div className="text-[11px] text-[#8BA4AE]">
+                {usage.quotas.channels.limit === 1
+                  ? "Solo WhatsApp Oficial"
+                  : "Omnicanal Activo"}
+              </div>
+            </div>
+
+            {/* Agentes de Equipo */}
+            <div className="rounded-xl border border-[#243C4A]/50 bg-[#0D1920]/60 p-3.5 space-y-2">
+              <div className="flex justify-between text-xs">
+                <span className="text-[#8BA4AE] font-medium">Agentes de Equipo</span>
+                <span className="font-bold text-white">
+                  {usage.quotas.teamMembers.current} /{" "}
+                  {usage.quotas.teamMembers.limit === -1
+                    ? "∞"
+                    : usage.quotas.teamMembers.limit}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#1A2E39] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[#00C4C0] transition-all duration-500"
+                  style={{ width: `${usage.quotas.teamMembers.percentage}%` }}
+                />
+              </div>
+              <div className="text-[11px] text-[#8BA4AE]">
+                {usage.quotas.teamMembers.limit === -1
+                  ? "Ilimitados"
+                  : `${usage.quotas.teamMembers.remaining} asientos restantes`}
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

@@ -101,7 +101,7 @@ export const DEFAULT_PLANS: DefaultPlanDefinition[] = [
     priceMonthlyUsd: 29900, // $299 USD
     priceYearlyUsd: 299000, // $2990 USD
     limits: {
-      maxContacts: 200000,
+      maxContacts: -1, // Ilimitado para agencias
       maxTeamMembers: -1, // Ilimitado
       maxChannels: 4,
       maxMonthlyAiTokens: 10000000,

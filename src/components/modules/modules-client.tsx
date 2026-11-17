@@ -47,6 +47,7 @@ export function ModulesClient() {
   const [selectedCat, setSelectedCat] = useState<ModuleCategory | "all">("all");
   const [loading, setLoading] = useState(true);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/modules")
@@ -58,7 +59,17 @@ export function ModulesClient() {
   }, []);
 
   async function handleToggle(moduleId: string, currentStatus: string) {
+    const targetModule = modules.find((m) => m.id === moduleId);
     const nextStatus = currentStatus === "active" ? "disabled" : "active";
+    setErrorMessage(null);
+
+    if (nextStatus === "active" && targetModule?.isAllowedByPlan === false) {
+      setErrorMessage(
+        `El módulo '${targetModule.name}' requiere el Plan Pro o superior. Actualiza tu suscripción en Ajustes → Facturación.`
+      );
+      return;
+    }
+
     setTogglingId(moduleId);
 
     // Optimista
@@ -74,13 +85,32 @@ export function ModulesClient() {
       )
     );
 
-    await fetch("/api/modules", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ moduleId, status: nextStatus }),
-    }).catch(() => null);
-
-    setTogglingId(null);
+    try {
+      const res = await fetch("/api/modules", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ moduleId, status: nextStatus }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        setModules((prev) =>
+          prev.map((m) =>
+            m.id === moduleId ? { ...m, status: currentStatus as "active" | "disabled" } : m
+          )
+        );
+        setErrorMessage(
+          json?.message || "No se pudo cambiar el estado del módulo. Revisa tu plan."
+        );
+      }
+    } catch {
+      setModules((prev) =>
+        prev.map((m) =>
+          m.id === moduleId ? { ...m, status: currentStatus as "active" | "disabled" } : m
+        )
+      );
+    } finally {
+      setTogglingId(null);
+    }
   }
 
   const filtered = modules.filter(
@@ -126,6 +156,19 @@ export function ModulesClient() {
         ))}
       </div>
 
+      {/* Alerta de Cuota / Plan Upgrade */}
+      {errorMessage && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3.5 rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-300 text-xs shadow-sm">
+          <span>{errorMessage}</span>
+          <Link
+            href="/settings/billing"
+            className="font-bold underline text-amber-200 hover:text-white whitespace-nowrap"
+          >
+            Ver Planes de Facturación →
+          </Link>
+        </div>
+      )}
+
       {/* Grid de Módulos */}
       {loading ? (
         <div className="flex items-center justify-center py-16 text-muted">
@@ -162,9 +205,16 @@ export function ModulesClient() {
                         <Icon className="h-5 w-5" />
                       </div>
                       <div>
-                        <h3 className="font-display text-base font-bold text-fg">
-                          {m.name}
-                        </h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-display text-base font-bold text-fg">
+                            {m.name}
+                          </h3>
+                          {m.isAllowedByPlan === false && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                              Plan Pro
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[11px] font-mono text-muted">
                           v{m.version} · {m.author}
                         </span>

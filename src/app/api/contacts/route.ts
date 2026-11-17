@@ -8,6 +8,7 @@ import { normalizeMx } from "@/lib/meta/client";
 import { digitsOnly, normalizeText } from "@/lib/search";
 import { serializeContact } from "@/server/contacts";
 import { createLeadForContact } from "@/server/inbox/lead-activity";
+import { assertCanAddContact, QuotaExceededError } from "@/server/billing/gating";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +123,19 @@ const createSchema = z.object({
 export const POST = withAuth(async (session, req: Request) => {
   const body = await parseBody(req, createSchema);
   if (!body.ok) return body.response;
+
+  try {
+    await assertCanAddContact(session.organizationId, 1);
+  } catch (err) {
+    if (err instanceof QuotaExceededError) {
+      return apiError(
+        402,
+        "contact_quota_exceeded",
+        `Has alcanzado el límite de ${err.limit} contactos de tu plan. Actualiza a un plan superior para registrar más contactos.`
+      );
+    }
+    throw err;
+  }
 
   const db = getDb();
   // 003: la identidad WhatsApp se deriva del teléfono normalizado.

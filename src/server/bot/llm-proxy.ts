@@ -1,6 +1,8 @@
 import { apiRoot } from "@/lib/ai/presets";
 import { resolveAiProvider } from "@/lib/ai/provider";
 import { marcarEstadoPorRespuesta } from "@/server/ai/credentials";
+import { assertCanConsumeAiTokens, QuotaExceededError } from "@/server/billing/gating";
+import { recordUsage } from "@/server/billing/service";
 
 /**
  * 036 — El CRM piensa por el cerebro (`POST /api/bot/llm/{ruta}`).
@@ -36,6 +38,19 @@ export async function pensarPorElCerebro(input: {
   cuerpoCrudo: string;
   contentType: string | null;
 }): Promise<ResultadoProxy> {
+  try {
+    await assertCanConsumeAiTokens(input.organizationId, 100);
+  } catch (err) {
+    if (err instanceof QuotaExceededError) {
+      return {
+        ok: false,
+        status: 402,
+        code: "cuota_ia_agotada",
+        message: `Has consumido los ${err.limit.toLocaleString()} tokens mensuales de tu plan. Actualiza tu suscripción en Ajustes → Facturación para continuar usando el Agente IA.`,
+      };
+    }
+  }
+
   const r = await resolveAiProvider(input.organizationId);
   if (!r.ok) {
     return {
@@ -72,6 +87,26 @@ export async function pensarPorElCerebro(input: {
       await marcarEstadoPorRespuesta(input.organizationId, res.status, cuerpo.slice(0, 200)).catch(
         () => {}
       );
+    }
+
+    if (res.ok) {
+      try {
+        const parsed = JSON.parse(cuerpo);
+        const tokens = parsed?.usage?.total_tokens;
+        if (typeof tokens === "number" && tokens > 0) {
+          await recordUsage({
+            organizationId: input.organizationId,
+            aiTokensDelta: tokens,
+          }).catch(() => {});
+        }
+      } catch {
+        // En caso de respuesta sin campo usage estándar, aproximamos por longitud
+        const estimatedTokens = Math.max(1, Math.ceil(cuerpo.length / 4));
+        await recordUsage({
+          organizationId: input.organizationId,
+          aiTokensDelta: estimatedTokens,
+        }).catch(() => {});
+      }
     }
 
     return {
