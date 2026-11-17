@@ -75,7 +75,7 @@ export function AppNav({
   role,
   apariencia,
   commit,
-  agenda = false,
+  agenda: _agenda = false,
   kicker = "Santo Domingo",
   open = false,
   onClose,
@@ -213,10 +213,7 @@ export function AppNav({
     { href: "/agent/training", label: "Entrenar IA", icon: Wand2 },
   ];
 
-  if (agenda) {
-    mainNavItems.push({ href: "/bookings", label: "Calendario", icon: CalendarDays });
-  }
-
+  mainNavItems.push({ href: "/calendar", label: "Calendario", icon: CalendarDays });
   mainNavItems.push({ href: "/results", label: "Estadísticas", icon: ChartColumn });
   mainNavItems.push({ href: "/modules", label: "Módulos", icon: Blocks });
   mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });

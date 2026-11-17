@@ -73,10 +73,10 @@
 
 ### FASE 5: Automatizaciones Persistentes (DB-Backed) y Calendario
 *Objetivo: Motor de automatizaciones transaccional en PostgreSQL sin Redis (`FOR UPDATE SKIP LOCKED`) y vista de calendario semanal.*
-- [ ] **Tarea 5.1:** Esquema `automation_jobs`, runner asíncrono con concurrencia segura `SKIP LOCKED`, reintentos exponenciales y prevención de loops.
-- [ ] **Tarea 5.2:** Vista de Automatizaciones (`#automatizaciones`: tarjetas, diagramas paso a paso, contadores de ejecuciones, alertas de handoff con Web Push / Webhook).
-- [ ] **Tarea 5.3:** Vista de Calendario semanal (`#calendario`: citas visuales de IA vs. equipo, sincronización Google Calendar y agendamiento directo).
-- [ ] **Tarea 5.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/05-automatizaciones-calendario.md`.
+- [X] **Tarea 5.1:** Esquema `automation_jobs`, runner asíncrono con concurrencia segura `SKIP LOCKED`, reintentos exponenciales y prevención de loops.
+- [X] **Tarea 5.2:** Vista de Automatizaciones (`#automatizaciones`: tarjetas, diagramas paso a paso, contadores de ejecuciones, alertas de handoff con Web Push / Webhook).
+- [X] **Tarea 5.3:** Vista de Calendario semanal (`#calendario`: citas visuales de IA vs. equipo, sincronización Google Calendar y agendamiento directo).
+- [X] **Tarea 5.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/05-automatizaciones-calendario.md`.
 
 ---
 
