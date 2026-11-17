@@ -711,6 +711,12 @@ export const agentProfile = pgTable(
      * todas: lo que tiene una instalación que actualiza.
      */
     tools: jsonb("tools").$type<string[]>(),
+    /** Wachato: Modo de atención (wachato, externo, mixto) */
+    mode: text("mode", { enum: ["wachato", "externo", "mixto"] }).notNull().default("wachato"),
+    externalWebhookUrl: text("external_webhook_url"),
+    externalSecret: text("external_secret"),
+    handoffRules: jsonb("handoff_rules").$type<{ persona?: boolean; queja?: boolean; medica?: boolean; fuera?: boolean }>(),
+    businessInfo: jsonb("business_info").$type<{ rubro?: string; address?: string; hours?: string; faq?: string; services?: Array<{ n: string; p: number }>; docs?: Array<{ n: string; frag: number }> }>(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
   },

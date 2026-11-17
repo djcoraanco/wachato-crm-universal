@@ -36,6 +36,31 @@ export const GET = withAuth(async (session) => {
       // 034
       role: rolDe(p.role).clave,
       tools: herramientasEfectivas(p.tools),
+      mode: p.mode ?? "wachato",
+      externalWebhookUrl: p.externalWebhookUrl,
+      externalSecret: p.externalSecret,
+      handoffRules: p.handoffRules ?? {
+        persona: true,
+        queja: true,
+        medica: true,
+        fuera: false,
+      },
+      businessInfo: p.businessInfo ?? {
+        rubro: "Clínica de Estética",
+        address: "Av. Abraham Lincoln 456, Piantini, Santo Domingo",
+        hours: "Lunes a viernes 9:00 AM – 7:00 PM · Sábados 9:00 AM – 2:00 PM",
+        faq: "Aceptamos efectivo, transferencias bancarias y tarjetas Visa/Mastercard.",
+        services: [
+          { n: "Limpieza facial profunda", p: 2500 },
+          { n: "Botox (por zona)", p: 7500 },
+          { n: "Ácido hialurónico (labios)", p: 12000 },
+          { n: "Depilación láser (sesión)", p: 3500 },
+        ],
+        docs: [
+          { n: "Catalogo_Servicios_BellaPiel_2025.pdf", frag: 24 },
+          { n: "Politicas_Cancelacion_Citas.docx", frag: 8 },
+        ],
+      },
     },
     // 034 — Sin la bandera, la pantalla no ofrece agendar ni reprogramar.
     agendaEnabled: agendaEnabled(),
@@ -58,6 +83,19 @@ const putSchema = z.object({
     .array(z.enum(CLAVES_HERRAMIENTA as [ClaveHerramienta, ...ClaveHerramienta[]]))
     .max(CLAVES_HERRAMIENTA.length)
     .optional(),
+  mode: z.enum(["wachato", "externo", "mixto"]).optional(),
+  externalWebhookUrl: z.string().url().max(1000).nullable().optional(),
+  externalSecret: z.string().max(255).nullable().optional(),
+  handoffRules: z
+    .object({
+      persona: z.boolean().optional(),
+      queja: z.boolean().optional(),
+      medica: z.boolean().optional(),
+      fuera: z.boolean().optional(),
+    })
+    .nullable()
+    .optional(),
+  businessInfo: z.record(z.unknown()).nullable().optional(),
 });
 
 export const PUT = withAuth(async (session, req: Request) => {

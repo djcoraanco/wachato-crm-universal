@@ -82,10 +82,10 @@
 
 ### FASE 6: Plataforma de IA, Entrenamiento y Sandbox
 *Objetivo: Configuración de motor de IA multi-proveedor, enrutador dinámico de herramientas y pantalla de entrenamiento con sandbox interactivo sticky.*
-- [ ] **Tarea 6.1:** Dynamic Context-Aware Tool Router: `/api/bot/profile` expone exclusivamente herramientas de módulos activos para no saturar el contexto del LLM.
-- [ ] **Tarea 6.2:** Vista de Agentes (`#agentes`: selector de modo Wachato / Externo / Mixto con fallback de 10s, claves API multi-proveedor cifradas y reglas de escalado a humano).
-- [ ] **Tarea 6.3:** Vista de Entrenar IA (`#entrenar`: medidor de progreso 0-100%, 5 bloques de conocimiento estructurado y Sandbox interactivo sticky con chips de prueba rápida).
-- [ ] **Tarea 6.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/06-ia-entrenamiento.md`.
+- [X] **Tarea 6.1:** Dynamic Context-Aware Tool Router: `/api/bot/profile` expone exclusivamente herramientas de módulos activos para no saturar el contexto del LLM.
+- [X] **Tarea 6.2:** Vista de Agentes (`#agentes`: selector de modo Wachato / Externo / Mixto con fallback de 10s, claves API multi-proveedor cifradas y reglas de escalado a humano).
+- [X] **Tarea 6.3:** Vista de Entrenar IA (`#entrenar`: medidor de progreso 0-100%, 5 bloques de conocimiento estructurado y Sandbox interactivo sticky con chips de prueba rápida).
+- [X] **Tarea 6.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/06-ia-entrenamiento.md`.
 
 ---
 

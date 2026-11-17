@@ -44,5 +44,12 @@ export async function GET(req: Request) {
   const ia = await resolveAiProvider(organizationId);
   const llm: BotLlm = ia.ok && ia.provider.model ? { path: "/api/bot/llm", model: ia.provider.model } : null;
 
-  return Response.json(serializeBotProfile(profile, kb, llm));
+  // Dynamic Context-Aware Tool Router: herramientas de módulos activos
+  const { getInstalledModules } = await import("@/lib/modules/registry");
+  const installedModules = await getInstalledModules(organizationId);
+  const activeModuleTools = installedModules
+    .filter((m) => m.status === "active")
+    .flatMap((m) => m.tools);
+
+  return Response.json(serializeBotProfile(profile, kb, llm, activeModuleTools));
 }

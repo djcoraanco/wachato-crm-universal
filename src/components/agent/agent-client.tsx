@@ -2,21 +2,108 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Sparkles, Trash2 } from "lucide-react";
-import { BrainStatusCard } from "@/components/agent/brain-status-card";
-import { externalDown, type BrainStatusDto } from "@/lib/brain-status";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Check, Copy, ExternalLink, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  HERRAMIENTAS,
-  ROLES,
-  type ClaveHerramienta,
-} from "@/lib/agent-roles";
+import { BrainStatusCard } from "@/components/agent/brain-status-card";
+import type { BrainStatusDto } from "@/lib/brain-status";
+
+export const PROV_CATALOG: Record<
+  string,
+  {
+    n: string;
+    pre: string;
+    ph: string;
+    url: string;
+    link: string;
+    baseUrl?: string;
+    models: Array<[string, string]>;
+  }
+> = {
+  anthropic: {
+    n: "Anthropic (Claude)",
+    pre: "sk-ant-",
+    ph: "sk-ant-…",
+    url: "console.anthropic.com",
+    link: "https://console.anthropic.com",
+    baseUrl: "https://openrouter.ai/api", // Compatible LLM proxy
+    models: [
+      ["anthropic/claude-3.5-sonnet", "equilibrado, recomendado"],
+      ["anthropic/claude-3.5-haiku", "rápido y económico"],
+      ["anthropic/claude-3-opus", "el más capaz"],
+    ],
+  },
+  openai: {
+    n: "OpenAI (ChatGPT)",
+    pre: "sk-",
+    ph: "sk-…",
+    url: "platform.openai.com",
+    link: "https://platform.openai.com/api-keys",
+    baseUrl: "https://api.openai.com/v1",
+    models: [
+      ["gpt-4o", "el más capaz"],
+      ["gpt-4o-mini", "equilibrado, recomendado"],
+      ["gpt-4-turbo", "robusto para tareas complejas"],
+    ],
+  },
+  gemini: {
+    n: "Google Gemini",
+    pre: "AIza",
+    ph: "AIza…",
+    url: "aistudio.google.com",
+    link: "https://aistudio.google.com/app/apikey",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
+    models: [
+      ["gemini-1.5-pro", "el más capaz"],
+      ["gemini-1.5-flash", "rápido y económico"],
+      ["gemini-2.0-flash-exp", "nueva generación"],
+    ],
+  },
+  mistral: {
+    n: "Mistral",
+    pre: "",
+    ph: "Tu clave de Mistral",
+    url: "console.mistral.ai",
+    link: "https://console.mistral.ai",
+    baseUrl: "https://api.mistral.ai/v1",
+    models: [
+      ["mistral-large-latest", "el más capaz"],
+      ["mistral-small-latest", "rápido y económico"],
+    ],
+  },
+  deepseek: {
+    n: "DeepSeek",
+    pre: "sk-",
+    ph: "sk-…",
+    url: "platform.deepseek.com",
+    link: "https://platform.deepseek.com",
+    baseUrl: "https://api.deepseek.com",
+    models: [
+      ["deepseek-chat", "conversación"],
+      ["deepseek-reasoner", "razonamiento profundo"],
+    ],
+  },
+  custom: {
+    n: "Otro compatible con OpenAI (OpenRouter, Groq, Ollama…)",
+    pre: "",
+    ph: "Tu clave API",
+    url: "el panel de tu proveedor",
+    link: "https://openrouter.ai/keys",
+    baseUrl: "https://openrouter.ai/api",
+    models: [
+      ["openrouter/auto", "enrutamiento inteligente"],
+      ["meta-llama/llama-3.3-70b-instruct", "open source de alto rendimiento"],
+    ],
+  },
+};
+
+type Mode = "wachato" | "externo" | "mixto";
+
+type HandoffRules = {
+  persona?: boolean;
+  queja?: boolean;
+  medica?: boolean;
+  fuera?: boolean;
+};
 
 type Profile = {
   enabled: boolean;
@@ -25,33 +112,33 @@ type Profile = {
   instructions: string | null;
   escalationRules: string | null;
   greeting: string | null;
-  /** 034 */
   role: string;
-  tools: ClaveHerramienta[];
-};
-
-type KbEntry = {
-  id: string;
-  kind: "qa" | "block";
-  question: string | null;
-  answer: string | null;
-  content: string | null;
+  tools: string[];
+  mode: Mode;
+  externalWebhookUrl: string | null;
+  externalSecret: string | null;
+  handoffRules: HandoffRules;
 };
 
 export function AgentClient() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [aiConfigured, setAiConfigured] = useState(true);
-  const [aiMensaje, setAiMensaje] = useState<string | null>(null);
-  const [entries, setEntries] = useState<KbEntry[]>([]);
-  const [kbSize, setKbSize] = useState<{ chars: number; warnAt: number; warning: boolean } | null>(null);
-  const [saved, setSaved] = useState(false);
-  // 036 — Por qué no se pudo encender (409 `sin_cerebro`): el mensaje del
-  // servidor, tal cual, junto al interruptor.
-  const [switchError, setSwitchError] = useState<string | null>(null);
-  const [agendaEnabled, setAgendaEnabled] = useState(false);
-  // «Quién responde»: se refresca solo, porque la última llamada del cerebro
-  // externo y su /health cambian sin que nadie toque esta pantalla.
   const [brain, setBrain] = useState<BrainStatusDto | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [switchError, setSwitchError] = useState<string | null>(null);
+
+  // Motor de IA
+  const [aiProv, setAiProv] = useState<string>("anthropic");
+  const [aiBase, setAiBase] = useState<string>("https://api.openai.com/v1");
+  const [aiModel, setAiModel] = useState<string>("anthropic/claude-3.5-sonnet");
+  const [aiKey, setAiKey] = useState<string>("");
+  const [connectedKey, setConnectedKey] = useState<string | null>(null);
+  const [testingAi, setTestingAi] = useState(false);
+  const [aiTestResult, setAiTestResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  // Agente Externo
+  const [hookTested, setHookTested] = useState<string>("");
+  const [testingHook, setTestingHook] = useState(false);
+  const [copiedPayload, setCopiedPayload] = useState(false);
 
   const loadBrain = useCallback(async () => {
     const b = await fetch("/api/agent/brain-status")
@@ -61,68 +148,58 @@ export function AgentClient() {
   }, []);
 
   const refetch = useCallback(async () => {
-    const [p, kb, size] = await Promise.all([
+    const [p, ai] = await Promise.all([
       fetch("/api/agent/profile").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/kb").then((r) => (r.ok ? r.json() : null)),
-      fetch("/api/kb/size").then((r) => (r.ok ? r.json() : null)),
+      fetch("/api/settings/ai").then((r) => (r.ok ? r.json() : null)),
       loadBrain(),
-    ]).catch(() => [null, null, null]);
-    if (p) {
+    ]).catch(() => [null, null]);
+
+    if (p?.profile) {
       setProfile(p.profile);
-      setAiConfigured(p.aiConfigured);
-      setAiMensaje(p.aiMensaje ?? null);
-      setAgendaEnabled(p.agendaEnabled === true);
     }
-    if (kb) setEntries(kb.entries);
-    if (size) setKbSize(size);
+
+    if (ai?.credencial) {
+      if (ai.credencial.tokenLast4) {
+        setConnectedKey(`● Conectada · …${ai.credencial.tokenLast4}`);
+      }
+      if (ai.credencial.modelo) {
+        setAiModel(ai.credencial.modelo);
+      }
+      if (ai.credencial.baseUrl) {
+        setAiBase(ai.credencial.baseUrl);
+      }
+    }
   }, [loadBrain]);
 
   useEffect(() => {
     void refetch();
   }, [refetch]);
 
-  useEffect(() => {
-    const id = setInterval(() => void loadBrain(), 30_000);
-    return () => clearInterval(id);
-  }, [loadBrain]);
-
   if (!profile) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-        Cargando…
+      <div className="flex h-full items-center justify-center text-sm text-muted">
+        Cargando configuración de agentes…
       </div>
     );
   }
 
-  async function cargarPreset() {
-    const ok = window.confirm(
-      `Cargar el rol «${ROLES.calificador.etiqueta}» reemplaza las instrucciones y las reglas de escalado, y enciende todas sus herramientas. ¿Continuar?`
-    );
-    if (!ok) return;
-    await fetch("/api/agent/profile/preset", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ role: "calificador" }),
-    }).catch(() => null);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-    void refetch();
-  }
-
-  async function saveProfile(patch: Partial<Profile>): Promise<boolean> {
+  async function saveProfilePatch(patch: Partial<Profile>) {
+    const next = { ...profile, ...patch } as Profile;
+    setProfile(next);
     const res = await fetch("/api/agent/profile", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(patch),
     }).catch(() => null);
+
     if (!res?.ok) {
-      const data = (await res?.json().catch(() => null)) as {
-        error?: { message?: string };
-      } | null;
+      const data = await res?.json().catch(() => null);
       if (patch.enabled !== undefined) {
         setSwitchError(
           data?.error?.message ??
-            (patch.enabled ? "No se pudo encender el agente." : "No se pudo apagar el agente.")
+            (patch.enabled
+              ? "No se pudo encender el agente."
+              : "No se pudo apagar el agente.")
         );
       }
       void refetch();
@@ -131,375 +208,588 @@ export function AgentClient() {
     if (patch.enabled !== undefined) setSwitchError(null);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-    void refetch();
     return true;
   }
 
-  // 036 — El interruptor solo se enciende con un agente conectado (el
-  // servidor lo exige igual: 409 `sin_cerebro`). Apagarlo se puede siempre:
-  // un perfil que quedó encendido sin cerebro no debe quedarse atrapado.
-  const brainConnected = brain?.dispatch.active === true;
-  const switchDisabled = !profile.enabled && brain !== null && !brainConnected;
+  async function handleConnectKey() {
+    if (!aiKey.trim()) return;
+    setTestingAi(true);
+    setAiTestResult(null);
 
-  // 036 — Sin llave de IA el agente conectado no tiene con qué pensar (piensa
-  // por el CRM, `/api/bot/llm`). Sin agente conectado no hace falta pedirla:
-  // la bandeja manual no la usa. Con el agente caído ya lo dice la tarjeta.
-  const aiCallout =
-    !aiConfigured && brainConnected && brain && !externalDown(brain);
+    const baseUrl =
+      aiProv === "custom"
+        ? aiBase
+        : PROV_CATALOG[aiProv]?.baseUrl ?? "https://openrouter.ai/api";
+
+    const res = await fetch("/api/settings/ai", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        provider: "openai_compatible",
+        baseUrl,
+        model: aiModel,
+        token: aiKey.trim(),
+      }),
+    }).catch(() => null);
+
+    setTestingAi(false);
+    if (res?.ok) {
+      const last4 = aiKey.trim().slice(-4);
+      setConnectedKey(`● Conectada · …${last4}`);
+      setAiKey("");
+      setAiTestResult({ ok: true, msg: "Clave guardada y cifrada correctamente." });
+    } else {
+      const err = await res?.json().catch(() => null);
+      setAiTestResult({
+        ok: false,
+        msg: err?.error?.message ?? "Error al validar la clave con el proveedor.",
+      });
+    }
+  }
+
+  async function handleDisconnectKey() {
+    await fetch("/api/settings/ai", { method: "DELETE" }).catch(() => null);
+    setConnectedKey(null);
+    setAiTestResult(null);
+  }
+
+  async function handleTestAiProbe() {
+    setTestingAi(true);
+    setAiTestResult(null);
+    const baseUrl =
+      aiProv === "custom"
+        ? aiBase
+        : PROV_CATALOG[aiProv]?.baseUrl ?? "https://openrouter.ai/api";
+
+    const res = await fetch("/api/settings/ai/test", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        provider: "openai_compatible",
+        baseUrl,
+        model: aiModel,
+        token: aiKey.trim() || undefined,
+      }),
+    }).catch(() => null);
+
+    setTestingAi(false);
+    if (res?.ok) {
+      setAiTestResult({ ok: true, msg: "Conexión exitosa con el proveedor de IA." });
+    } else {
+      const err = await res?.json().catch(() => null);
+      setAiTestResult({
+        ok: false,
+        msg: err?.error?.message ?? "No se pudo conectar con el modelo.",
+      });
+    }
+  }
+
+  async function handleTestHook() {
+    if (!profile?.externalWebhookUrl) {
+      setHookTested("Escribe la URL del webhook primero");
+      return;
+    }
+    setTestingHook(true);
+    setHookTested("Probando webhook…");
+    try {
+      const res = await fetch(profile.externalWebhookUrl, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-wachato-secret": profile.externalSecret || "wachato-test",
+        },
+        body: JSON.stringify({
+          tipo: "ping",
+          timestamp: new Date().toISOString(),
+          mensaje: "Prueba de conectividad desde Wachato CRM Universal",
+        }),
+      });
+      if (res.ok) {
+        setHookTested("✓ Conexión exitosa (200 OK)");
+      } else {
+        setHookTested(`✗ Falló: HTTP ${res.status}`);
+      }
+    } catch {
+      setHookTested("✗ Error de red o URL inalcanzable");
+    } finally {
+      setTestingHook(false);
+    }
+  }
+
+  const samplePayload = JSON.stringify(
+    {
+      contacto: { nombre: "María Fernández", canal: "whatsapp" },
+      mensaje: "¿Tienen disponibilidad esta semana?",
+      etapa: "calificado",
+      ventana_24h_abierta: true,
+      negocio: {
+        servicios: ["Limpieza facial", "Botox"],
+        horario: "Lunes a viernes 9:00 AM – 7:00 PM",
+      },
+    },
+    null,
+    2
+  );
+
+  const pv = PROV_CATALOG[aiProv] ?? PROV_CATALOG.anthropic!;
 
   return (
-    <div className="h-full overflow-y-auto">
-      <header className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 sm:px-6 sm:py-4">
-        <h2 className="text-[17px] font-bold tracking-tight">Agente de IA</h2>
+    <div className="h-full overflow-y-auto p-4 sm:p-6 space-y-6">
+      {/* Top Header */}
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold font-display text-fg flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-accent" />
+            Configuración de Agentes de IA
+          </h1>
+          <p className="text-xs sm:text-sm text-muted mt-0.5">
+            Define quién responde a tus clientes, qué modelo de IA usar y cuándo transferir a un agente humano.
+          </p>
+        </div>
         <div className="flex items-center gap-3">
-          {saved && <span className="text-xs text-primary">Guardado ✓</span>}
-          <span className="text-sm text-muted-foreground">
-            {profile.enabled ? "Encendido" : "Apagado"}
+          {saved && (
+            <span className="text-xs font-semibold text-accent animate-fade-in">
+              Guardado ✓
+            </span>
+          )}
+          <span className="text-sm font-medium text-muted">
+            {profile.enabled ? "Agente encendido" : "Agente apagado"}
           </span>
-          {/* El interruptor compartido (#53): el pomo propio de aquí era
-              `absolute` sin `left`, arrancaba del centro de la pista y
-              encendido quedaba afuera. */}
-          {/* Encender exige IA; APAGAR se puede siempre. Con la llave pausada
-              (#85) el agente sigue «encendido» sin poder pensar, y un
-              interruptor bloqueado dejaría al dueño sin forma de callarlo. */}
           <Switch
             checked={profile.enabled}
-            disabled={switchDisabled}
             label="Agente encendido"
-            onCheckedChange={(enabled) => void saveProfile({ enabled })}
+            onCheckedChange={(enabled) => void saveProfilePatch({ enabled })}
           />
         </div>
-        {(switchError || switchDisabled) && (
-          <p
-            role={switchError ? "alert" : undefined}
-            className={
-              switchError
-                ? "w-full text-right text-xs text-danger-text"
-                : "w-full text-right text-xs text-muted-foreground"
-            }
-          >
-            {switchError ?? "Se enciende cuando conectes tu agente."}
+        {switchError && (
+          <p role="alert" className="w-full text-right text-xs text-danger font-medium">
+            {switchError}
           </p>
         )}
       </header>
 
       {brain && (
-        <div className="mx-4 mt-4 sm:mx-6 sm:mt-6">
+        <div>
           <BrainStatusCard status={brain} />
         </div>
       )}
 
-      {aiCallout && (
-        <div className="mx-4 mt-4 rounded-lg border border-brand-soft bg-brand-tint p-5 text-center sm:mx-6 sm:mt-6 sm:p-6">
-          <Sparkles className="mx-auto mb-2 h-8 w-8 text-primary" />
-          <p className="font-medium">
-            {aiMensaje ? "Tu agente no puede pensar" : "Tu agente no tiene con qué pensar"}
-          </p>
-          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            {aiMensaje ??
-              "Piensa a través del CRM con la llave de Ajustes → IA: elige el proveedor, el modelo y pega tu llave, sin reiniciar nada."}{" "}
-            (Si tu agente usa su propia llave, puedes ignorar este aviso.)
-          </p>
-          <Link
-            href="/settings/ai"
-            className="mt-3 inline-block text-sm font-medium text-brand-text underline underline-offset-2"
-          >
-            Ir a Ajustes → IA →
-          </Link>
+      {/* Grid de Configuración según specs/design/wachato-prototype.html */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+        {/* CARD 1: ¿Quién responde los mensajes? */}
+        <div className="card p-5 bg-panel border border-line rounded-xl space-y-4 shadow-sm">
+          <h2 className="text-base font-bold font-display text-fg">
+            ¿Quién responde los mensajes?
+          </h2>
+          <div className="space-y-3">
+            {[
+              {
+                id: "wachato" as Mode,
+                title: "Agente Wachato",
+                desc: "Aprende de lo que cargas en «Entrenar IA». Listo para usar.",
+              },
+              {
+                id: "externo" as Mode,
+                title: "Agente externo del cliente",
+                desc: "Conecta un agente que ya tengas (n8n, Make, OpenAI, Botpress…) por webhook.",
+              },
+              {
+                id: "mixto" as Mode,
+                title: "Mixto",
+                desc: "El agente externo responde y Wachato toma el control si falla o tarda más de 10 s.",
+              },
+            ].map((opt) => {
+              const active = profile.mode === opt.id;
+              return (
+                <label
+                  key={opt.id}
+                  className={`card flex items-start gap-3 p-3.5 rounded-lg border cursor-pointer transition-all ${
+                    active
+                      ? "border-accent bg-accent-soft/30"
+                      : "border-line bg-panel2/50 hover:bg-panel2 text-fg"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="agent_mode"
+                    value={opt.id}
+                    checked={active}
+                    onChange={() => void saveProfilePatch({ mode: opt.id })}
+                    className="mt-1 accent-[#00C4C0]"
+                  />
+                  <div>
+                    <b className="text-sm font-semibold text-fg block">
+                      {opt.title}
+                    </b>
+                    <span className="text-xs text-muted leading-relaxed block mt-0.5">
+                      {opt.desc}
+                    </span>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
         </div>
-      )}
 
-      <div className="grid gap-4 p-4 sm:gap-6 sm:p-6 lg:grid-cols-2">
-        <RolSection
-          profile={profile}
-          agendaEnabled={agendaEnabled}
-          onTools={(tools) => void saveProfile({ tools })}
-          onPreset={() => void cargarPreset()}
-        />
-        <ProfileSection profile={profile} onSave={saveProfile} />
-        <KbSection entries={entries} kbSize={kbSize} onChanged={() => void refetch()} />
+        {/* CARD 2: Motor de IA (oculto si modo es externo puro) */}
+        {profile.mode !== "externo" && (
+          <div className="card p-5 bg-panel border border-line rounded-xl space-y-4 shadow-sm">
+            <h2 className="text-base font-bold font-display text-fg">
+              Motor de IA
+            </h2>
+            <p className="text-xs text-muted leading-relaxed">
+              Elige qué inteligencia artificial usa tu agente y conecta tu propia clave API. El consumo lo cobra directamente el proveedor a tu cuenta.
+            </p>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-fg" htmlFor="aiProv">
+                Proveedor
+              </label>
+              <select
+                id="aiProv"
+                value={aiProv}
+                onChange={(e) => {
+                  const p = e.target.value;
+                  setAiProv(p);
+                  const entry = PROV_CATALOG[p];
+                  if (entry) {
+                    if (entry.models[0]) setAiModel(entry.models[0][0]);
+                    if (entry.baseUrl) setAiBase(entry.baseUrl);
+                  }
+                }}
+                className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+              >
+                {Object.entries(PROV_CATALOG).map(([k, p]) => (
+                  <option key={k} value={k}>
+                    {p.n}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {aiProv === "custom" && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-fg" htmlFor="aiBase">
+                  URL base de la API
+                </label>
+                <input
+                  type="url"
+                  id="aiBase"
+                  value={aiBase}
+                  onChange={(e) => setAiBase(e.target.value)}
+                  placeholder="https://openrouter.ai/api o tu servidor vLLM"
+                  className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                />
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-fg" htmlFor="aiModel">
+                Modelo
+              </label>
+              {aiProv === "custom" ? (
+                <input
+                  type="text"
+                  id="aiModel"
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  placeholder="p. ej. meta-llama/llama-3.3-70b-instruct"
+                  className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                />
+              ) : (
+                <select
+                  id="aiModel"
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                >
+                  {pv.models.map(([id, d]) => (
+                    <option key={id} value={id}>
+                      {id} · {d}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-fg block" htmlFor="aiKey">
+                Clave API de {pv.n}
+              </label>
+              {connectedKey ? (
+                <div className="flex items-center justify-between p-2.5 bg-panel2 border border-accent/40 rounded-lg">
+                  <span className="text-xs font-semibold text-accent">
+                    {connectedKey}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDisconnectKey}
+                    className="text-xs px-2.5 py-1 rounded border border-line text-muted hover:text-danger hover:border-danger transition-colors"
+                  >
+                    Quitar clave
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="password"
+                    id="aiKey"
+                    value={aiKey}
+                    onChange={(e) => setAiKey(e.target.value)}
+                    placeholder={pv.ph}
+                    autoComplete="off"
+                    className="flex-1 bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                  />
+                  <button
+                    type="button"
+                    disabled={testingAi || !aiKey.trim()}
+                    onClick={handleConnectKey}
+                    className="px-3.5 py-2 bg-accent text-on-accent text-xs font-bold font-display rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    {testingAi ? "Guardando…" : "Conectar"}
+                  </button>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[11px] text-muted pt-1">
+                <span>
+                  Consíguela en{" "}
+                  <a
+                    href={pv.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-accent underline inline-flex items-center gap-0.5"
+                  >
+                    {pv.url} <ExternalLink className="h-3 w-3" />
+                  </a>
+                </span>
+                <button
+                  type="button"
+                  onClick={handleTestAiProbe}
+                  disabled={testingAi}
+                  className="text-accent hover:underline font-medium"
+                >
+                  Probar conexión
+                </button>
+              </div>
+              {aiTestResult && (
+                <p
+                  className={`text-xs mt-1 font-medium ${
+                    aiTestResult.ok ? "text-accent" : "text-danger"
+                  }`}
+                >
+                  {aiTestResult.msg}
+                </p>
+              )}
+            </div>
+
+            <p className="text-[11px] text-muted border-t border-line/60 pt-3">
+              En Wachato la clave se almacena cifrada en reposo con AES-256-GCM y nunca se expone en logs ni en la UI.
+            </p>
+          </div>
+        )}
+
+        {/* CARD 3: Agente Wachato (oculto si modo es externo puro) */}
+        {profile.mode !== "externo" && (
+          <div className="card p-5 bg-panel border border-line rounded-xl space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-bold font-display text-fg">
+                Personalidad y Reglas
+              </h2>
+              <Link
+                href="/agent/training"
+                className="text-xs font-semibold text-accent hover:underline flex items-center gap-1"
+              >
+                Ir a Entrenar IA →
+              </Link>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-fg" htmlFor="agName">
+                Nombre del agente
+              </label>
+              <input
+                type="text"
+                id="agName"
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                onBlur={() => void saveProfilePatch({ name: profile.name })}
+                className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-fg" htmlFor="agTone">
+                Tono
+              </label>
+              <input
+                type="text"
+                id="agTone"
+                value={profile.tone ?? ""}
+                placeholder="p. ej. cálido, profesional, de usted, cercano"
+                onChange={(e) => setProfile({ ...profile, tone: e.target.value })}
+                onBlur={() => void saveProfilePatch({ tone: profile.tone })}
+                className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+              />
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <span className="text-xs font-semibold text-fg block">
+                Pasar a un humano cuando…
+              </span>
+              {[
+                {
+                  id: "persona" as const,
+                  label: "El cliente pide hablar con una persona",
+                },
+                {
+                  id: "queja" as const,
+                  label: "Hay una queja o reclamo",
+                },
+                {
+                  id: "medica" as const,
+                  label: "Hay preguntas médicas (embarazo, alergias, medicamentos)",
+                },
+                {
+                  id: "fuera" as const,
+                  label: "Escriben fuera del horario laboral",
+                },
+              ].map((rule) => {
+                const checked = !!profile.handoffRules?.[rule.id];
+                return (
+                  <label
+                    key={rule.id}
+                    className="flex items-center gap-2.5 text-xs text-fg cursor-pointer select-none"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={(e) => {
+                        const updated = {
+                          ...profile.handoffRules,
+                          [rule.id]: e.target.checked,
+                        };
+                        void saveProfilePatch({ handoffRules: updated });
+                      }}
+                      className="accent-[#00C4C0] rounded"
+                    />
+                    <span>{rule.label}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* CARD 4: Agente externo (oculto si modo es wachato puro) */}
+        {profile.mode !== "wachato" && (
+          <div className="card p-5 bg-panel border border-line rounded-xl space-y-4 shadow-sm md:col-span-2">
+            <h2 className="text-base font-bold font-display text-fg">
+              Agente externo
+            </h2>
+            <p className="text-xs text-muted leading-relaxed">
+              Wachato despachará cada turno de conversación al webhook indicado. Si elegiste modo Mixto, Wachato responderá automáticamente si el webhook no responde en 10 segundos.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-fg" htmlFor="hookUrl">
+                  URL del webhook
+                </label>
+                <input
+                  type="url"
+                  id="hookUrl"
+                  value={profile.externalWebhookUrl ?? ""}
+                  placeholder="https://tu-servidor.com/webhook/wachato"
+                  onChange={(e) =>
+                    setProfile({ ...profile, externalWebhookUrl: e.target.value })
+                  }
+                  onBlur={() =>
+                    void saveProfilePatch({
+                      externalWebhookUrl: profile.externalWebhookUrl,
+                    })
+                  }
+                  className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-fg" htmlFor="hookKey">
+                  Clave secreta (Header x-wachato-secret)
+                </label>
+                <input
+                  type="password"
+                  id="hookKey"
+                  value={profile.externalSecret ?? ""}
+                  placeholder="clave-segura-del-webhook"
+                  onChange={(e) =>
+                    setProfile({ ...profile, externalSecret: e.target.value })
+                  }
+                  onBlur={() =>
+                    void saveProfilePatch({
+                      externalSecret: profile.externalSecret,
+                    })
+                  }
+                  className="w-full bg-panel2 border border-line rounded-lg px-3 py-2 text-sm text-fg focus:outline-none focus:border-accent"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-fg">
+                  Wachato envía cada mensaje así
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(samplePayload);
+                    setCopiedPayload(true);
+                    setTimeout(() => setCopiedPayload(false), 1500);
+                  }}
+                  className="text-xs text-muted hover:text-fg flex items-center gap-1"
+                >
+                  {copiedPayload ? (
+                    <Check className="h-3 w-3 text-accent" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                  {copiedPayload ? "Copiado" : "Copiar JSON"}
+                </button>
+              </div>
+              <pre className="p-3 bg-panel2 border border-line rounded-lg text-xs font-mono text-muted overflow-x-auto">
+                {samplePayload}
+              </pre>
+              <p className="text-xs text-muted">
+                Tu agente responde con{" "}
+                <code className="text-accent bg-panel2 px-1 rounded">
+                  {'{"respuesta": "...", "mover_a": "cita"}'}
+                </code>{" "}
+                y Wachato lo publica en el canal correspondiente.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={handleTestHook}
+                disabled={testingHook}
+                className="px-4 py-2 bg-panel2 border border-line hover:border-accent text-fg text-xs font-bold font-display rounded-lg transition-colors"
+              >
+                {testingHook ? "Probando…" : "Probar conexión"}
+              </button>
+              {hookTested && (
+                <span
+                  className={`text-xs font-semibold ${
+                    hookTested.startsWith("✓") ? "text-accent" : "text-danger"
+                  }`}
+                >
+                  {hookTested}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  );
-}
-
-/**
- * 034 — El rol y sus herramientas. Las respeta el agente conectado (Nea); el
- * CRM se las entrega en su perfil (`/api/bot/profile`).
- */
-function RolSection({
-  profile,
-  agendaEnabled,
-  onTools,
-  onPreset,
-}: {
-  profile: Profile;
-  agendaEnabled: boolean;
-  onTools: (tools: ClaveHerramienta[]) => void;
-  onPreset: () => void;
-}) {
-  const rol = ROLES[profile.role as keyof typeof ROLES] ?? ROLES.calificador;
-  const visibles = HERRAMIENTAS.filter((h) => !h.agenda || agendaEnabled);
-  const encendida = (clave: ClaveHerramienta) => profile.tools.includes(clave);
-  function cambiar(clave: ClaveHerramienta, on: boolean) {
-    const siguiente = on
-      ? [...profile.tools, clave]
-      : profile.tools.filter((t) => t !== clave);
-    onTools(siguiente);
-  }
-
-  return (
-    <Card className="lg:col-span-2">
-      <CardHeader>
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <CardTitle>
-              Rol: {rol.etiqueta}
-            </CardTitle>
-            <CardDescription>{rol.descripcion}</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" onClick={onPreset}>
-            Cargar el rol {rol.etiqueta}
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {visibles.map((h) => (
-            <li key={h.clave} className="flex items-start justify-between gap-3 rounded-md border p-3">
-              <div>
-                <p className="text-sm font-medium">{h.etiqueta}</p>
-                <p className="text-xs text-muted-foreground">{h.descripcion}</p>
-              </div>
-              <Switch
-                checked={h.fija ? true : encendida(h.clave)}
-                disabled={h.fija === true}
-                label={h.etiqueta}
-                onCheckedChange={(on) => cambiar(h.clave, on)}
-              />
-            </li>
-          ))}
-        </ul>
-        <p className="text-xs text-muted-foreground">
-          El agente toma los cambios en unos minutos, sin redesplegar nada.
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ProfileSection({
-  profile,
-  onSave,
-}: {
-  profile: Profile;
-  onSave: (patch: Partial<Profile>) => Promise<boolean>;
-}) {
-  const [form, setForm] = useState(profile);
-  useEffect(() => setForm(profile), [profile]);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Comportamiento</CardTitle>
-        <CardDescription>
-          Cómo se presenta y actúa el agente al responder a tus clientes.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="agent-name">Nombre del agente</Label>
-          <Input
-            id="agent-name"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="agent-tone">Tono</Label>
-          <Input
-            id="agent-tone"
-            placeholder="p. ej. cercano y directo, con usted"
-            value={form.tone ?? ""}
-            onChange={(e) => setForm({ ...form, tone: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="agent-instructions">Instrucciones</Label>
-          <Textarea
-            id="agent-instructions"
-            rows={5}
-            placeholder="Qué debe y no debe hacer el agente…"
-            value={form.instructions ?? ""}
-            onChange={(e) => setForm({ ...form, instructions: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="agent-escalation">Reglas de escalado</Label>
-          <Textarea
-            id="agent-escalation"
-            rows={3}
-            placeholder="Cuándo pasar la conversación a un humano…"
-            value={form.escalationRules ?? ""}
-            onChange={(e) => setForm({ ...form, escalationRules: e.target.value })}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="agent-greeting">Saludo</Label>
-          <Input
-            id="agent-greeting"
-            placeholder="Saludo para conversaciones nuevas"
-            value={form.greeting ?? ""}
-            onChange={(e) => setForm({ ...form, greeting: e.target.value })}
-          />
-        </div>
-        <Button
-          onClick={() => {
-            // 034 — Solo lo de esta tarjeta: el formulario guarda una copia
-            // del perfil de cuando se abrió, y mandarla entera pisaría las
-            // herramientas cambiadas después en la tarjeta del rol.
-            const { name, tone, instructions, escalationRules, greeting } = form;
-            void onSave({ name, tone, instructions, escalationRules, greeting });
-          }}
-        >
-          Guardar comportamiento
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function KbSection({
-  entries,
-  kbSize,
-  onChanged,
-}: {
-  entries: KbEntry[];
-  kbSize: { chars: number; warnAt: number; warning: boolean } | null;
-  onChanged: () => void;
-}) {
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
-  const [block, setBlock] = useState("");
-
-  async function addQa() {
-    if (!question.trim() || !answer.trim()) return;
-    await fetch("/api/kb", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "qa", question, answer }),
-    }).catch(() => null);
-    setQuestion("");
-    setAnswer("");
-    onChanged();
-  }
-
-  async function addBlock() {
-    if (!block.trim()) return;
-    await fetch("/api/kb", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ kind: "block", content: block }),
-    }).catch(() => null);
-    setBlock("");
-    onChanged();
-  }
-
-  async function remove(id: string) {
-    await fetch(`/api/kb/${id}`, { method: "DELETE" }).catch(() => null);
-    onChanged();
-  }
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle>Knowledge base</CardTitle>
-            <CardDescription>
-              La única fuente de verdad del agente: lo que no está aquí, no lo
-              afirma.
-            </CardDescription>
-          </div>
-          {kbSize && (
-            <Badge variant={kbSize.warning ? "warning" : "secondary"}>
-              {kbSize.chars.toLocaleString("es-MX")} caracteres
-            </Badge>
-          )}
-        </div>
-        {kbSize?.warning && (
-          <p className="text-xs text-warning-text">
-            El conocimiento se acerca al límite del contexto del modelo (v1 lo
-            inyecta completo en cada turno). Considera depurar entradas.
-          </p>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2 rounded-md border p-3">
-          <p className="text-sm font-medium">Nueva pregunta / respuesta</p>
-          <Input
-            placeholder="Pregunta (p. ej. ¿Hacen envíos?)"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-          />
-          <Textarea
-            placeholder="Respuesta"
-            rows={2}
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-          />
-          <Button
-            size="sm"
-            onClick={() => void addQa()}
-            disabled={!question.trim() || !answer.trim()}
-          >
-            <Plus className="h-4 w-4" /> Agregar P/R
-          </Button>
-        </div>
-
-        <div className="space-y-2 rounded-md border p-3">
-          <p className="text-sm font-medium">Nuevo bloque de texto libre</p>
-          <Textarea
-            placeholder="Horarios, direcciones, políticas…"
-            rows={3}
-            value={block}
-            onChange={(e) => setBlock(e.target.value)}
-          />
-          <Button size="sm" onClick={() => void addBlock()} disabled={!block.trim()}>
-            <Plus className="h-4 w-4" /> Agregar bloque
-          </Button>
-        </div>
-
-        <ul className="space-y-2">
-          {entries.map((e) => (
-            <li key={e.id} className="flex items-start gap-2 rounded-md border p-3">
-              <div className="min-w-0 flex-1 text-sm">
-                {e.kind === "qa" ? (
-                  <>
-                    <p className="font-medium">{e.question}</p>
-                    <p className="mt-0.5 text-muted-foreground">{e.answer}</p>
-                  </>
-                ) : (
-                  <p className="whitespace-pre-wrap text-muted-foreground">{e.content}</p>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Eliminar entrada"
-                onClick={() => void remove(e.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </li>
-          ))}
-          {entries.length === 0 && (
-            <p className="py-2 text-center text-xs text-muted-foreground">
-              Sin entradas todavía: agrega lo que el agente debe saber.
-            </p>
-          )}
-        </ul>
-      </CardContent>
-    </Card>
   );
 }

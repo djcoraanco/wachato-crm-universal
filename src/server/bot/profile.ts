@@ -24,8 +24,31 @@ type KbEntry = typeof schema.kbEntry.$inferSelect;
  */
 export type BotLlm = { path: string; model: string } | null;
 
-export function serializeBotProfile(profile: AgentProfile, kb: KbEntry[], llm: BotLlm = null) {
-  return {
+export function serializeBotProfile(
+  profile: AgentProfile,
+  kb: KbEntry[],
+  llm: BotLlm = null,
+  moduleTools: Array<{ name: string; description: string; parameters: Record<string, unknown> }> = []
+) {
+  const baseTools = herramientasEfectivas(profile.tools);
+  const extraTools = moduleTools.map((t) => t.name);
+  const tools = Array.from(new Set([...baseTools, ...extraTools]));
+
+  const result: {
+    profile: {
+      name: string;
+      tone: string | null;
+      instructions: string | null;
+      escalationRules: string | null;
+      greeting: string | null;
+      role: string;
+      tools: string[];
+    };
+    kb: string;
+    resources: { label: string; url: string }[];
+    llm: BotLlm;
+    moduleTools?: typeof moduleTools;
+  } = {
     profile: {
       name: profile.name,
       tone: profile.tone ?? null,
@@ -33,10 +56,16 @@ export function serializeBotProfile(profile: AgentProfile, kb: KbEntry[], llm: B
       escalationRules: profile.escalationRules ?? null,
       greeting: profile.greeting ?? null,
       role: rolDe(profile.role).clave,
-      tools: herramientasEfectivas(profile.tools),
+      tools,
     },
     kb: renderKb(kb),
     resources: [] as { label: string; url: string }[],
     llm,
   };
+
+  if (moduleTools.length > 0) {
+    result.moduleTools = moduleTools;
+  }
+
+  return result;
 }
