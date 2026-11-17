@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
+import { EmbeddedCheckoutModal } from "@/components/billing/embedded-checkout-modal";
 import {
   CreditCard,
   CheckCircle2,
@@ -55,6 +56,7 @@ interface QuotaSummary {
 export default function BillingPage() {
   const [plans, setPlans] = useState<PlanItem[]>([]);
   const [usage, setUsage] = useState<QuotaSummary | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanItem | null>(null);
   const [_providers, setProviders] = useState<{ stripe: boolean; paypal: boolean }>({
     stripe: false,
     paypal: false,
@@ -426,34 +428,44 @@ export default function BillingPage() {
                 </div>
 
                 <div className="mt-6 space-y-2 pt-4 border-t border-[#243C4A]/60">
-                  {/* Botón Stripe */}
+                  {/* Botón Checkout Embebido Modal */}
                   <button
-                    onClick={() => handleStripeCheckout(p.slug)}
-                    disabled={Boolean(actionLoading)}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[#00C4C0] hover:bg-[#00D9D4] text-[#0D1920] font-bold text-xs transition disabled:opacity-50"
+                    onClick={() => setCheckoutPlan(p)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-[#00C4C0] hover:bg-[#00D9D4] text-[#0D1920] font-bold text-xs transition shadow-sm"
                   >
-                    {actionLoading === `stripe_${p.slug}` ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <>
-                        <span>Pagar con Tarjeta (Stripe)</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </>
-                    )}
+                    <span>⚡ Suscribirse (Checkout Embebido)</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Botón PayPal */}
-                  <button
-                    onClick={() => handlePayPalCheckout(p.slug)}
-                    disabled={Boolean(actionLoading)}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-[#0079C1] hover:bg-[#0089DC] text-white font-semibold text-xs transition disabled:opacity-50"
-                  >
-                    {actionLoading === `paypal_${p.slug}` ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <span>Suscribir con PayPal</span>
-                    )}
-                  </button>
+                  <div className="flex gap-2 pt-1">
+                    {/* Botón Stripe Directo */}
+                    <button
+                      onClick={() => handleStripeCheckout(p.slug)}
+                      disabled={Boolean(actionLoading)}
+                      title="Pagar directamente en Stripe"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#1A2E39] hover:bg-[#243C4A] border border-[#243C4A] text-white font-medium text-[11px] transition disabled:opacity-50"
+                    >
+                      {actionLoading === `stripe_${p.slug}` ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <span>Stripe</span>
+                      )}
+                    </button>
+
+                    {/* Botón PayPal Directo */}
+                    <button
+                      onClick={() => handlePayPalCheckout(p.slug)}
+                      disabled={Boolean(actionLoading)}
+                      title="Pagar directamente en PayPal"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg bg-[#0079C1]/20 hover:bg-[#0079C1]/30 border border-[#0079C1]/40 text-[#00A4FF] font-medium text-[11px] transition disabled:opacity-50"
+                    >
+                      {actionLoading === `paypal_${p.slug}` ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <span>PayPal</span>
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -473,6 +485,16 @@ export default function BillingPage() {
           </p>
         </div>
       </div>
+
+      {/* Modal de Checkout Embebido */}
+      {checkoutPlan && (
+        <EmbeddedCheckoutModal
+          plan={checkoutPlan}
+          initialInterval={isYearly ? "yearly" : "monthly"}
+          isOpen={Boolean(checkoutPlan)}
+          onClose={() => setCheckoutPlan(null)}
+        />
+      )}
     </div>
   );
 }

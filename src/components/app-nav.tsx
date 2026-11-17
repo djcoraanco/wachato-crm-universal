@@ -18,6 +18,7 @@ import {
   LogOut,
   Radio,
   Settings,
+  ShieldAlert,
   Sparkles,
   Users,
   Wand2,
@@ -220,7 +221,8 @@ export function AppNav({
   mainNavItems.push({ href: "/agency", label: "Agencia Partner", icon: Building2 });
   mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });
 
-  if (role === "owner" || role === "admin") {
+  if (role === "owner" || role === "admin" || role === "superadmin") {
+    mainNavItems.push({ href: "/admin", label: "Super Admin", icon: ShieldAlert });
     mainNavItems.push({ href: "/onboarding", label: "Guía de inicio", icon: ListChecks });
     mainNavItems.push({ href: "/lab", label: "Laboratorio", icon: FlaskConical });
   }
