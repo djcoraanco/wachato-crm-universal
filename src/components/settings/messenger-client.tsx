@@ -14,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ZernioConnect } from "@/components/settings/zernio-connect";
+import { MetaOneClickConnect } from "@/components/settings/meta-one-click-connect";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 
@@ -173,6 +174,12 @@ export function MessengerClient() {
           <Badge variant="success">Messenger activo</Badge>
         </div>
       )}
+
+      {/* Conexión oficial en 1 clic */}
+      <MetaOneClickConnect
+        channelFilter="messenger"
+        onSuccess={() => void refetch()}
+      />
 
       <Card>
         <CardHeader>

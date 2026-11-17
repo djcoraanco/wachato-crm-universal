@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EntregasCard } from "./entregas-card";
+import { MetaOneClickConnect } from "./meta-one-click-connect";
 
 type Connection = {
   wabaId: string;
@@ -114,6 +115,11 @@ export function WhatsappWizard() {
           />
         </div>
       )}
+
+      <MetaOneClickConnect
+        channelFilter="whatsapp"
+        onSuccess={() => void refetch()}
+      />
 
       <ConnectForm
         existing={connection}

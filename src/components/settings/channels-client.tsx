@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { CHANNEL_LABEL, type Channel } from "@/lib/channels";
 import { cn } from "@/lib/utils";
+import { MetaOneClickConnect } from "@/components/settings/meta-one-click-connect";
 
 /**
  * 023 — Ajustes → Canales → Estado.
@@ -158,6 +159,12 @@ export function ChannelsClient() {
 
   return (
     <div className="max-w-3xl space-y-6">
+      {/* 038 — Conexión unificada en 1 clic para todos los canales de Meta */}
+      <MetaOneClickConnect
+        channelFilter="all"
+        onSuccess={() => void refetch()}
+      />
+
       <Card>
         <CardHeader className="flex-row items-start justify-between gap-4 space-y-0">
           <div className="space-y-1.5">

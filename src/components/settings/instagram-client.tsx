@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ZernioConnect } from "@/components/settings/zernio-connect";
+import { MetaOneClickConnect } from "@/components/settings/meta-one-click-connect";
 import { cn } from "@/lib/utils";
 
 /**
@@ -173,6 +174,12 @@ export function InstagramClient() {
           <Badge variant="success">Instagram activo</Badge>
         </div>
       )}
+
+      {/* Conexión oficial en 1 clic */}
+      <MetaOneClickConnect
+        channelFilter="instagram"
+        onSuccess={() => void refetch()}
+      />
 
       <Card>
         <CardHeader>

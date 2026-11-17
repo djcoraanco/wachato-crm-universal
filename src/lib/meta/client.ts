@@ -40,9 +40,9 @@ export async function graphRequest<T>(
   path: string,
   opts: {
     method?: "GET" | "POST" | "DELETE";
-    token: string;
+    token?: string;
     body?: unknown;
-  }
+  } = {}
 ): Promise<T> {
   const env = getEnv();
   const url = `${env.META_GRAPH_BASE_URL}/${env.META_GRAPH_API_VERSION}/${path}`;
@@ -51,7 +51,7 @@ export async function graphRequest<T>(
     res = await fetch(url, {
       method: opts.method ?? "GET",
       headers: {
-        Authorization: `Bearer ${opts.token}`,
+        ...(opts.token ? { Authorization: `Bearer ${opts.token}` } : {}),
         ...(opts.body !== undefined
           ? { "Content-Type": "application/json" }
           : {}),
