@@ -1,7 +1,9 @@
-# --- Secretos (NUNCA al control de versiones) ---
-.env
-.env.*
+# --- Secretos locales ---
+.env.local
+.env.*.local
+!.env
 !.env.example
+!.env.docker
 *.pem
 *.key
 
