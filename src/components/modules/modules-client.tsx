@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Briefcase,
   Building2,
@@ -224,20 +225,30 @@ export function ModulesClient() {
                 </div>
 
                 <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs">
-                  <span
-                    className={cn(
-                      "flex items-center gap-1 font-semibold",
-                      isActive ? "text-emerald-400" : "text-muted"
-                    )}
-                  >
+                  <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "h-1.5 w-1.5 rounded-full",
-                        isActive ? "bg-emerald-500" : "bg-muted"
+                        "flex items-center gap-1 font-semibold",
+                        isActive ? "text-emerald-400" : "text-muted"
                       )}
-                    />
-                    {isActive ? "Módulo Activo" : "Inactivo"}
-                  </span>
+                    >
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 rounded-full",
+                          isActive ? "bg-emerald-500" : "bg-muted"
+                        )}
+                      />
+                      {isActive ? "Módulo Activo" : "Inactivo"}
+                    </span>
+                    {isActive && (
+                      <Link
+                        href={`/modules/${m.id}`}
+                        className="text-xs font-semibold text-accent hover:underline ml-1"
+                      >
+                        Abrir módulo →
+                      </Link>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"

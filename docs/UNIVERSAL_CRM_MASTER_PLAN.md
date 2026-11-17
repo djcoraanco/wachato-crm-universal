@@ -91,12 +91,12 @@
 
 ### FASE 7: Módulos Sectoriales Oficiales
 *Objetivo: Implementar los 8 módulos precompilados de Wachato.*
-- [ ] **Tarea 7.1:** Módulo Restaurantes (`modules/restaurants`: mesas, zonas, menú QR, comandas y tickets ESC/POS; tools de IA para menú y reservas).
-- [ ] **Tarea 7.2:** Módulo Clínicas y Salud (`modules/clinics`: doctores, agenda médica, citas con confirmación WhatsApp 24h previas, privacidad estricta de expediente médico aislado del bot).
-- [ ] **Tarea 7.3:** Módulo E-Commerce y Retail (`modules/ecommerce`: catálogo, SKUs, variantes, stock multialmacén, carrito por chat y links Stripe/MercadoPago).
-- [ ] **Tarea 7.4:** Módulo Marketing y Agencias (`modules/marketing`: atribución CAPI, UTMs, entregables de clientes y webhooks n8n/Make).
-- [ ] **Tarea 7.5:** Módulos Inmobiliaria, Servicios Profesionales, Educación y Logística (`modules/real-estate`, `modules/professional-services`, `modules/education`, `modules/logistics`).
-- [ ] **Tarea 7.6:** Ejecución de Gates para todos los módulos (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/07-modulos-sectoriales.md`.
+- [X] **Tarea 7.1:** Módulo Restaurantes (`modules/restaurants`: mesas, zonas, menú QR, comandas y tickets ESC/POS; tools de IA para menú y reservas).
+- [X] **Tarea 7.2:** Módulo Clínicas y Salud (`modules/clinics`: doctores, agenda médica, citas con confirmación WhatsApp 24h previas, privacidad estricta de expediente médico aislado del bot).
+- [X] **Tarea 7.3:** Módulo E-Commerce y Retail (`modules/ecommerce`: catálogo, SKUs, variantes, stock multialmacén, carrito por chat y links Stripe/MercadoPago).
+- [X] **Tarea 7.4:** Módulo Marketing y Agencias (`modules/marketing`: atribución CAPI, UTMs, entregables de clientes y webhooks n8n/Make).
+- [X] **Tarea 7.5:** Módulos Inmobiliaria, Servicios Profesionales, Educación y Logística (`modules/real-estate`, `modules/professional-services`, `modules/education`, `modules/logistics`).
+- [X] **Tarea 7.6:** Ejecución de Gates para todos los módulos (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/07-modulos-sectoriales.md`.
 
 ---
 
