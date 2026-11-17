@@ -12,11 +12,13 @@ const patchSchema = z.object({
 });
 
 export const GET = withAuth(async (session) => {
+  const isSuper = session.role === "superadmin" || session.platformRole === "superadmin";
   const modules = await getInstalledModules(session.organizationId);
   const { limits, plan } = await getEffectivePlan(session.organizationId);
 
   const enriched = modules.map((m) => {
     const isIncluded =
+      isSuper ||
       limits.includedModules.includes(m.category) ||
       limits.includedModules.includes(m.id) ||
       limits.includedModules.includes("all");
@@ -34,8 +36,10 @@ export const PATCH = withAuth(async (session, req: Request) => {
   const body = await parseBody(req, patchSchema);
   if (!body.ok) return body.response;
 
-  // Si se desea activar un módulo, validar que el plan lo incluya
-  if (body.data.status === "active") {
+  const isSuper = session.role === "superadmin" || session.platformRole === "superadmin";
+
+  // Si se desea activar un módulo y no es superadmin, validar que el plan lo incluya
+  if (body.data.status === "active" && !isSuper) {
     try {
       await assertModuleAllowed(session.organizationId, body.data.moduleId);
     } catch (err) {

@@ -15,6 +15,7 @@ import {
   Zap,
   DollarSign,
   TrendingUp,
+  Plus,
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,14 @@ export default function SuperAdminPage() {
   const [targetInterval, setTargetInterval] = useState<"monthly" | "yearly">("monthly");
   const [updatingPlan, setUpdatingPlan] = useState(false);
   const [planSuccess, setPlanSuccess] = useState<string | null>(null);
+
+  // Modal para crear organización / empresa
+  const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
+  const [newOrgName, setNewOrgName] = useState("");
+  const [newOrgSlug, setNewOrgSlug] = useState("");
+  const [newOrgPlan, setNewOrgPlan] = useState("pro");
+  const [creatingOrg, setCreatingOrg] = useState(false);
+  const [createOrgError, setCreateOrgError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -104,6 +113,36 @@ export default function SuperAdminPage() {
       setError(err instanceof Error ? err.message : "Error al actualizar plan");
     } finally {
       setUpdatingPlan(false);
+    }
+  }
+
+  async function handleCreateOrg(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newOrgName.trim()) return;
+    setCreatingOrg(true);
+    setCreateOrgError(null);
+    try {
+      const res = await fetch("/api/admin/organizations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newOrgName.trim(),
+          slug: newOrgSlug.trim() || undefined,
+          planSlug: newOrgPlan,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error?.message || "Error al crear la empresa");
+
+      setNewOrgName("");
+      setNewOrgSlug("");
+      setNewOrgPlan("pro");
+      setShowCreateOrgModal(false);
+      void fetchData();
+    } catch (err) {
+      setCreateOrgError(err instanceof Error ? err.message : "Error al crear la empresa");
+    } finally {
+      setCreatingOrg(false);
     }
   }
 
@@ -276,6 +315,15 @@ export default function SuperAdminPage() {
                 className="pl-9 text-sm"
               />
             </div>
+            <Button
+              onClick={() => {
+                setCreateOrgError(null);
+                setShowCreateOrgModal(true);
+              }}
+              className="bg-primary text-primary-foreground font-semibold"
+            >
+              <Plus className="h-4 w-4 mr-1.5" /> Nueva Empresa
+            </Button>
           </div>
 
           <Card>
@@ -548,6 +596,90 @@ export default function SuperAdminPage() {
                 Guardar y Aplicar Plan
               </Button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para Crear Nueva Organización / Empresa */}
+      {showCreateOrgModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <h3 className="text-lg font-bold flex items-center gap-2">
+              <Building2 className="h-5 w-5 text-primary" />
+              Crear Nueva Empresa / Cliente
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Aprovisiona una nueva organización en la plataforma con su propio pipeline, agentes y plan activo de inmediato.
+            </p>
+
+            {createOrgError && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-xs flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0" />
+                <span>{createOrgError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateOrg} className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-foreground">Nombre del Negocio / Empresa *</label>
+                <Input
+                  required
+                  placeholder="Ej: Clínica Dental San Lucas"
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
+                  className="mt-1 text-sm"
+                  autoFocus
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Slug Identificador (opcional)</label>
+                <Input
+                  placeholder="ej: clinica-san-lucas"
+                  value={newOrgSlug}
+                  onChange={(e) => setNewOrgSlug(e.target.value)}
+                  className="mt-1 text-sm font-mono"
+                />
+                <span className="text-[11px] text-muted-foreground">
+                  Se generará automáticamente si lo dejas en blanco.
+                </span>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground">Plan Inicial Asignado</label>
+                <select
+                  value={newOrgPlan}
+                  onChange={(e) => setNewOrgPlan(e.target.value)}
+                  className="w-full mt-1 px-3 py-2 rounded-lg border bg-background text-sm font-medium"
+                >
+                  <option value="pro">Plan Pro (Recomendado - 10k contactos, multicanal)</option>
+                  <option value="starter">Plan Starter (1 canal, 1k contactos)</option>
+                  <option value="business">Plan Business (50k contactos, multi-pipeline)</option>
+                  <option value="agency-scale">Plan Agency Partner (Marca Blanca)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateOrgModal(false)}
+                  disabled={creatingOrg}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={creatingOrg || !newOrgName.trim()}
+                  className="bg-primary text-primary-foreground font-semibold"
+                >
+                  {creatingOrg ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Crear y Activar Empresa
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -14,6 +14,7 @@ import {
   FlaskConical,
   Inbox,
   Kanban,
+  Link2,
   ListChecks,
   LogOut,
   Radio,
@@ -67,7 +68,7 @@ export function navItemClass(active: boolean) {
     "flex items-center justify-between gap-2 px-3 py-2.5 rounded-[9px] font-semibold text-[14px] transition-colors whitespace-nowrap",
     active
       ? "bg-accent-soft text-accent"
-      : "text-muted hover:bg-panel2 hover:text-fg"
+      : "text-fg/85 hover:bg-panel2 hover:text-fg font-medium"
   );
 }
 
@@ -205,27 +206,54 @@ export function AppNav({
     badge?: boolean;
   };
 
-  // Mapeo exacto de vistas según specs/design/wachato-prototype.html
-  const mainNavItems: WachatoNavItem[] = [
-    { href: "/inbox", label: "Bandeja", icon: Inbox, badge: true },
-    { href: "/pipeline", label: "Pipeline", icon: Kanban },
-    { href: "/contacts", label: "Contactos", icon: Users },
-    { href: "/automations", label: "Automatizaciones", icon: Radio },
-    { href: "/agent", label: "Agentes de IA", icon: Sparkles },
-    { href: "/agent/training", label: "Entrenar IA", icon: Wand2 },
+  type NavSection = {
+    title?: string;
+    items: WachatoNavItem[];
+  };
+
+  const navSections: NavSection[] = [
+    {
+      title: "CRM & Trabajo",
+      items: [
+        { href: "/inbox", label: "Bandeja", icon: Inbox, badge: true },
+        { href: "/pipeline", label: "Pipeline", icon: Kanban },
+        { href: "/contacts", label: "Contactos", icon: Users },
+        { href: "/calendar", label: "Calendario", icon: CalendarDays },
+        { href: "/results", label: "Estadísticas", icon: ChartColumn },
+      ],
+    },
+    {
+      title: "Agente & IA",
+      items: [
+        { href: "/agent", label: "Agentes de IA", icon: Sparkles },
+        { href: "/agent/training", label: "Entrenar IA", icon: Wand2 },
+        { href: "/automations", label: "Automatizaciones", icon: Radio },
+        ...(role === "owner" || role === "admin" || role === "superadmin"
+          ? [
+              { href: "/lab", label: "Laboratorio", icon: FlaskConical },
+              { href: "/onboarding", label: "Guía de inicio", icon: ListChecks },
+            ]
+          : []),
+      ],
+    },
+    {
+      title: "Plataforma & SaaS",
+      items: [
+        { href: "/modules", label: "Módulos", icon: Blocks },
+        { href: "/agency", label: "Agencia Partner", icon: Building2 },
+        { href: "/connections", label: "Conexiones y Meta", icon: Link2 },
+        ...(role === "owner" || role === "admin" || role === "superadmin"
+          ? [{ href: "/admin", label: "Super Admin", icon: ShieldAlert }]
+          : []),
+      ],
+    },
+    {
+      title: "Configuración",
+      items: [
+        { href: "/settings", label: "Ajustes", icon: Settings },
+      ],
+    },
   ];
-
-  mainNavItems.push({ href: "/calendar", label: "Calendario", icon: CalendarDays });
-  mainNavItems.push({ href: "/results", label: "Estadísticas", icon: ChartColumn });
-  mainNavItems.push({ href: "/modules", label: "Módulos", icon: Blocks });
-  mainNavItems.push({ href: "/agency", label: "Agencia Partner", icon: Building2 });
-  mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });
-
-  if (role === "owner" || role === "admin" || role === "superadmin") {
-    mainNavItems.push({ href: "/admin", label: "Super Admin", icon: ShieldAlert });
-    mainNavItems.push({ href: "/onboarding", label: "Guía de inicio", icon: ListChecks });
-    mainNavItems.push({ href: "/lab", label: "Laboratorio", icon: FlaskConical });
-  }
 
   function renderNavLink(item: WachatoNavItem) {
     const active = isNavActive(pathname, item.href);
@@ -234,14 +262,14 @@ export function AppNav({
         key={item.href}
         href={item.href}
         className={cn(
-          "flex items-center justify-between gap-2 px-3 py-2 rounded-[9px] font-semibold text-[14px] transition-colors whitespace-nowrap",
+          "flex items-center justify-between gap-2 px-3 py-2 rounded-[9px] text-[13.5px] transition-colors whitespace-nowrap",
           active
-            ? "bg-accent-soft text-accent"
-            : "text-muted hover:bg-panel2 hover:text-fg"
+            ? "bg-accent-soft text-accent font-semibold"
+            : "text-fg/85 hover:bg-panel2 hover:text-fg font-medium"
         )}
         aria-current={active ? "page" : undefined}
       >
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2.5">
           <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.8} aria-hidden />
           <span>{item.label}</span>
         </span>
@@ -271,8 +299,19 @@ export function AppNav({
         )}
       </div>
 
-      <nav className="flex flex-col gap-1" id="nav" aria-label="Navegación principal">
-        {mainNavItems.map(renderNavLink)}
+      <nav className="flex flex-col gap-3" id="nav" aria-label="Navegación principal">
+        {navSections.map((sec, idx) => (
+          <div key={sec.title ?? idx} className="space-y-0.5">
+            {sec.title && (
+              <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                {sec.title}
+              </div>
+            )}
+            <div className="flex flex-col gap-0.5">
+              {sec.items.map(renderNavLink)}
+            </div>
+          </div>
+        ))}
       </nav>
 
       <div className="navsep h-px bg-line my-3 mx-1 shrink-0" />

@@ -14,6 +14,22 @@ export type SubscriptionRecord = typeof schema.subscription.$inferSelect;
 export type UsageQuotaRecord = typeof schema.usageQuota.$inferSelect;
 
 /**
+ * Límites ilimitados para el SuperAdmin y organizaciones de la plataforma.
+ */
+export const SUPERADMIN_UNLIMITED_LIMITS: PlanLimits = {
+  maxContacts: -1,
+  maxTeamMembers: -1,
+  maxChannels: -1,
+  maxMonthlyAiTokens: -1,
+  maxPipelines: -1,
+  includedModules: ["all"],
+  allowCustomApi: true,
+  allowWhitelabel: true,
+  allowCustomDomain: true,
+  allowVoiceNotesTranscription: true,
+};
+
+/**
  * Obtiene todos los planes disponibles ordenados por sortOrder.
  */
 export async function getPlans(onlyActive = true): Promise<PlanRecord[]> {
@@ -116,6 +132,33 @@ export async function getEffectivePlan(organizationId: string): Promise<{
   source: "organization" | "agency" | "fallback";
 }> {
   const db = getDb();
+
+  // 0. Comprobar si la organización tiene algún miembro con rol de plataforma 'superadmin'.
+  // El SuperAdmin es el dueño self-hosted del sistema y jamás debe tener limitaciones de cuotas o módulos.
+  const superadminMember = await db
+    .select({ id: schema.user.id })
+    .from(schema.member)
+    .innerJoin(schema.user, eq(schema.member.userId, schema.user.id))
+    .where(
+      and(
+        eq(schema.member.organizationId, organizationId),
+        eq(schema.user.platformRole, "superadmin")
+      )
+    )
+    .limit(1);
+
+  if (superadminMember.length > 0) {
+    const topPlan =
+      (await getPlanBySlug("agency-scale")) ||
+      (await getPlanBySlug("business")) ||
+      (await getPlanBySlug("pro"));
+    return {
+      plan: topPlan,
+      limits: SUPERADMIN_UNLIMITED_LIMITS,
+      isCustom: true,
+      source: "organization",
+    };
+  }
 
   // 1. Verificar suscripción directa de la organización
   const orgSub = await getOrganizationSubscription(organizationId);

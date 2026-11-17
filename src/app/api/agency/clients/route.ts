@@ -1,10 +1,13 @@
 import { z } from "zod";
 import { apiError, parseBody, withAuth } from "@/lib/api";
 import {
+  createAgency,
   createAgencyClientOrganization,
   getUserAgency,
   listAgencyOrganizations,
+  type AgencyRecord,
 } from "@/server/agency/service";
+import type { AgencyMemberRole } from "@/lib/billing/types";
 import { getEffectivePlan } from "@/server/billing/service";
 import { isSuperAdmin } from "@/lib/auth/rbac";
 
@@ -14,8 +17,19 @@ export const dynamic = "force-dynamic";
  * GET /api/agency/clients: Lista las subcuentas clientes de la agencia.
  */
 export const GET = withAuth(async (session) => {
-  const agency = await getUserAgency(session.userId);
-  if (!agency && !isSuperAdmin(session.role)) {
+  const isSuper = session.role === "superadmin" || session.platformRole === "superadmin" || isSuperAdmin(session.role);
+  let agency = await getUserAgency(session.userId);
+
+  if (!agency && isSuper) {
+    // Si es superadmin sin agencia, auto-crear la agencia nodriza
+    agency = (await createAgency({
+      name: "Agencia Principal",
+      slug: `agency-${Date.now().toString(36)}`,
+      ownerUserId: session.userId,
+    })) as (AgencyRecord & { memberRole: AgencyMemberRole });
+  }
+
+  if (!agency && !isSuper) {
     return apiError(403, "not_an_agency", "El usuario no pertenece a ninguna agencia");
   }
 
@@ -38,16 +52,27 @@ const createClientSchema = z.object({
  * POST /api/agency/clients: Crea una nueva subcuenta cliente para la agencia.
  */
 export const POST = withAuth(async (session, req: Request) => {
-  const agency = await getUserAgency(session.userId);
-  if (!agency && !isSuperAdmin(session.role)) {
+  const isSuper = session.role === "superadmin" || session.platformRole === "superadmin" || isSuperAdmin(session.role);
+  let agency = await getUserAgency(session.userId);
+
+  if (!agency && isSuper) {
+    // Si es superadmin sin agencia, auto-crear la agencia nodriza
+    agency = (await createAgency({
+      name: "Agencia Principal",
+      slug: `agency-${Date.now().toString(36)}`,
+      ownerUserId: session.userId,
+    })) as (AgencyRecord & { memberRole: AgencyMemberRole });
+  }
+
+  if (!agency && !isSuper) {
     return apiError(403, "not_an_agency", "Solo miembros de agencias pueden crear subcuentas cliente");
   }
 
   const agencyId = agency!.id;
   const { limits } = await getEffectivePlan(session.organizationId);
 
-  // Validar si el plan permite marca blanca o subcuentas
-  if (!limits.allowWhitelabel && !isSuperAdmin(session.role)) {
+  // Validar si el plan permite marca blanca o subcuentas (omitido para SuperAdmin)
+  if (!limits.allowWhitelabel && !isSuper) {
     return apiError(
       402,
       "whitelabel_required",

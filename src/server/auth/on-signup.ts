@@ -78,8 +78,27 @@ export async function resolveMembership(
 ): Promise<{ organizationId: string; role: string } | null> {
   const db = getDb();
 
-  // Si se solicita una organización preferida (switch de contexto de agencia)
+  // Si se solicita una organización preferida (switch de contexto de agencia o superadmin)
   if (preferredOrgId) {
+    // 0. Si el usuario es superadmin de la plataforma, tiene acceso directo a cualquier organización
+    const userRow = await db
+      .select({ platformRole: schema.user.platformRole })
+      .from(schema.user)
+      .where(eq(schema.user.id, userId))
+      .limit(1);
+
+    if (userRow[0]?.platformRole === "superadmin") {
+      const targetOrg = await db
+        .select({ id: schema.organization.id })
+        .from(schema.organization)
+        .where(eq(schema.organization.id, preferredOrgId))
+        .limit(1);
+
+      if (targetOrg[0]) {
+        return { organizationId: preferredOrgId, role: "superadmin" };
+      }
+    }
+
     // 1. Membresía directa en esa organización
     const direct = await db
       .select({
