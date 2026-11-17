@@ -138,6 +138,25 @@
     --bubble-in-raised: #252c28;
     --bubble-in-line: #3a443f;
     --bubble-out-muted: #5f6a65;
+
+    /* Wachato CRM Universal (specs/design/wachato-prototype.html) */
+    --display: var(--font-nunito), "Nunito", ui-rounded, system-ui, sans-serif;
+    --body: var(--font-jakarta), "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --panel: #ffffff;
+    --panel2: #f3f8f9;
+    --line: #d3e1e5;
+    --fg: #0d1d25;
+    --muted: #587079;
+    --on-accent: #ffffff;
+    --wachato-accent: #009c98;
+    --wachato-accent-soft: rgba(0, 156, 152, 0.12);
+    --wa: #15a34a;
+    --ig: #c92a63;
+    --fb: #1d64d8;
+    --ok: #16955a;
+    --warn: #a87405;
+    --bad: #c7413b;
+    --bubble-ai: #ddeff6;
   }
 
   /*
@@ -243,6 +262,23 @@
     --riel-activo-texto: #111613;
     --enviar: #e6eee9;
     --enviar-texto: #111613;
+
+    /* Wachato CRM Universal (Dark por defecto en specs/design/wachato-prototype.html) */
+    --panel: #13222b;
+    --panel2: #1a2e39;
+    --line: #243c4a;
+    --fg: #e6f0f2;
+    --muted: #8ba4ae;
+    --on-accent: #03201f;
+    --wachato-accent: #00c4c0;
+    --wachato-accent-soft: rgba(0, 196, 192, 0.14);
+    --wa: #25d366;
+    --ig: #ea4f86;
+    --fb: #5b97f7;
+    --ok: #3bd38a;
+    --warn: #f2b544;
+    --bad: #f2706b;
+    --bubble-ai: #173f4a;
   }
 
   /*

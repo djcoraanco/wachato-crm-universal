@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif, Inter, Urbanist } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif, Inter, Nunito, Plus_Jakarta_Sans, Urbanist } from "next/font/google";
 import { accentCssVariables, DEFAULT_BRANDING } from "@/lib/branding";
 import { faviconHref } from "@/lib/favicon";
 import { appIconHref, NAV_INK, shortAppName } from "@/lib/pwa";
@@ -51,6 +51,19 @@ const plexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   display: "swap",
 });
+// Wachato CRM Universal: tipografías del prototipo
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["800", "900"],
+  variable: "--font-nunito",
+  display: "swap",
+});
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +101,7 @@ export default async function RootLayout({
   return (
     <html
       lang="es"
-      className={`${urbanist.variable} ${archivo.variable} ${inter.variable} ${plexSans.variable} ${instrumentSerif.variable} ${plexMono.variable}`}
+      className={`${urbanist.variable} ${archivo.variable} ${inter.variable} ${plexSans.variable} ${instrumentSerif.variable} ${plexMono.variable} ${nunito.variable} ${plusJakartaSans.variable}`}
       // La preferencia siempre es explícita: viaja resuelta en el HTML del
       // servidor, así que no hay divergencia con el cliente ni parpadeo.
       {...atributosHtml(apariencia)}

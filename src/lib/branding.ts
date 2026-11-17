@@ -59,6 +59,10 @@ export const DEFAULT_BRANDING: Branding = {
  * quien quiera un CRM más discreto.
  */
 export const ACCENT_PRESETS: Record<string, { label: string; set: AccentSet }> = {
+  "#00c4c0": {
+    label: "Turquesa Wachato",
+    set: { accent: "#00c4c0", hover: "#009c98", soft: "#d1f6f5", tint: "#ebfaf9", text: "#007a77", fg: "#03201f" },
+  },
   "#0d5bff": {
     label: "Azul Vocero",
     set: { accent: "#0d5bff", hover: "#0a4de6", soft: "#d3e2ff", tint: "#ebf1ff", text: "#0038d8", fg: "#ffffff" },

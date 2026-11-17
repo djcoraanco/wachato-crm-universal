@@ -124,6 +124,21 @@ const config: Config = {
         knob: "var(--knob)",
         chip: "var(--chip-bg)",
         "row-hover": "var(--row-hover)",
+        // Wachato CRM Universal tokens
+        panel: "var(--panel)",
+        panel2: "var(--panel2)",
+        line: "var(--line)",
+        fg: "var(--fg)",
+        wa: "var(--wa)",
+        ig: "var(--ig)",
+        fb: "var(--fb)",
+        ok: "var(--ok)",
+        warn: "var(--warn)",
+        bad: "var(--bad)",
+        "bubble-ai": "var(--bubble-ai)",
+        "on-accent": "var(--on-accent)",
+        "accent-soft": "var(--wachato-accent-soft, var(--accent-soft))",
+        "accent-wachato": "var(--wachato-accent)",
       },
       borderRadius: {
         sm: "var(--radius-sm)",
@@ -137,9 +152,10 @@ const config: Config = {
         pop: "var(--shadow-pop)",
         tarjeta: "var(--sombra-tarjeta)",
       },
-      // Las tres voces de la marca (ver src/app/layout.tsx, donde next/font
-      // las descarga en build y las sirve self-hosted, sin CDN en runtime).
+      // Las voces de la marca y el sistema de diseño Wachato
       fontFamily: {
+        display: ["var(--font-nunito)", "Nunito", "ui-rounded", "system-ui", "sans-serif"],
+        body: ["var(--font-jakarta)", "Plus Jakarta Sans", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
         sans: ["var(--font-sans)", "Archivo", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
         serif: ["var(--font-serif)", "Instrument Serif", "Georgia", "serif"],
         mono: ["var(--font-mono)", "IBM Plex Mono", "ui-monospace", "Cascadia Code", "monospace"],

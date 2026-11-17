@@ -49,6 +49,44 @@ export function BrandMark({
 }
 
 /**
+ * Logotipo SVG interactivo de Wachato (specs/design/wachato-prototype.html)
+ */
+export function WachatoLogo({
+  className,
+  accentColor = "var(--accent)",
+}: {
+  className?: string;
+  accentColor?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex items-center font-display font-black text-[28px] lg:text-[30px] tracking-[-0.02em] text-fg leading-none select-none",
+        className
+      )}
+      aria-label="wachato"
+    >
+      <span>wachat</span>
+      <svg
+        viewBox="0 0 100 100"
+        aria-hidden="true"
+        className="w-[0.95em] h-[0.95em] ml-[0.02em] translate-y-[0.1em] shrink-0"
+      >
+        <circle
+          cx="54"
+          cy="44"
+          r="32"
+          fill="none"
+          stroke={accentColor}
+          strokeWidth="20"
+        />
+        <path d="M22 60 L12 96 L44 78 Z" fill={accentColor} />
+      </svg>
+    </div>
+  );
+}
+
+/**
  * Mosaico cuadrado con degradado del acento: es el favicon en grande. Con un
  * logo subido lleva el logo (el MISMO archivo y la MISMA URL versionada que
  * la pestaña, así lo que se sube en Ajustes → Marca se ve en los dos sitios);

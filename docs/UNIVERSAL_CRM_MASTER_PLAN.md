@@ -13,7 +13,7 @@
 ## RESUMEN DE PROGRESO GLOBAL
 
 - **FASE 0: Auditoría Inicial, Línea Base e Inspección del Prototipo** — `[X] COMPLETADO (100 %)`
-- **FASE 1: Design System Wachato y App Shell en Next.js 15** — `[ ] PENDIENTE (0 %)`
+- **FASE 1: Design System Wachato y App Shell en Next.js 15** — `[X] COMPLETADO (100 %)`
 - **FASE 2: Core CRM Universal y Modelo Extendido** — `[ ] PENDIENTE (0 %)`
 - **FASE 3: Bandeja en Tiempo Real, Medios Vocales y Conexiones** — `[ ] PENDIENTE (0 %)`
 - **FASE 4: Motor Modular Nativo y SDK** — `[ ] PENDIENTE (0 %)`
@@ -36,9 +36,9 @@
 
 ### FASE 1: Design System Wachato y App Shell en Next.js 15
 *Objetivo: Replicar con fidelidad 100% los tokens visuales, tipografías y cascarón del prototipo HTML en Next.js 15 App Router.*
-- [ ] **Tarea 1.1:** Configurar Tailwind (`tailwind.config.ts`), fuentes Google (`Nunito` 800/900 y `Plus Jakarta Sans`) y variables CSS de Wachato (`globals.css`) con soporte dark/light nativo.
-- [ ] **Tarea 1.2:** Construir el App Shell responsivo (`Sidebar` de 228px con logo SVG interactivo de Wachato, navegación con badges `.count`, separador, tarjeta `.biz`, y `Topbar` con estado de entorno y fecha).
-- [ ] **Tarea 1.3:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y redacción de bitácora `docs/implementation/01-design-system.md`.
+- [X] **Tarea 1.1:** Configurar Tailwind (`tailwind.config.ts`), fuentes Google (`Nunito` 800/900 y `Plus Jakarta Sans`) y variables CSS de Wachato (`globals.css`) con soporte dark/light nativo.
+- [X] **Tarea 1.2:** Construir el App Shell responsivo (`Sidebar` de 228px con logo SVG interactivo de Wachato, navegación con badges `.count`, separador, tarjeta `.biz`, y `Topbar` con estado de entorno y fecha).
+- [X] **Tarea 1.3:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y redacción de bitácora `docs/implementation/01-design-system.md`.
 
 ---
 
