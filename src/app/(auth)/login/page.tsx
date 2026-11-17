@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "@/lib/auth/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -19,20 +17,33 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    const { error: err } = await signIn.email({ email, password });
-    setLoading(false);
-    if (err) {
-      setError(
-        err.status === 429
-          ? "Demasiados intentos. Espera unos minutos."
-          : "Correo o contraseña incorrectos."
-      );
-      return;
+
+    const cleanEmail = email.trim().toLowerCase();
+    try {
+      const { error: err } = await signIn.email({
+        email: cleanEmail,
+        password,
+      });
+
+      if (err) {
+        console.error("[login] Error de autenticación:", err);
+        setLoading(false);
+        setError(
+          err.message ||
+            (err.status === 429
+              ? "Demasiados intentos. Espera unos minutos."
+              : "Correo o contraseña incorrectos.")
+        );
+        return;
+      }
+
+      // Redireccionar con navegación completa para asegurar que las cookies se envíen
+      window.location.href = "/inbox";
+    } catch (unexpected) {
+      console.error("[login] Excepción inesperada:", unexpected);
+      setLoading(false);
+      setError("Error de conexión al servidor. Inténtalo de nuevo.");
     }
-    // A la raíz, no a la Bandeja: ahí se decide si toca la guía de inicio
-    // (#86) o la Bandeja de siempre.
-    router.push("/");
-    router.refresh();
   }
 
   return (

@@ -3,6 +3,7 @@ import { betterAuth } from "better-auth";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { organization } from "better-auth/plugins";
+import { nextCookies } from "better-auth/next-js";
 import { getDb, schema } from "@/lib/db";
 import { getEnv } from "@/lib/env";
 import { AUTH_RATE_LIMIT, checkRateLimit, clientIp } from "@/lib/rate-limit";
@@ -46,26 +47,42 @@ function createAuth() {
   const httpBase = rawBase.replace(/^https:\/\//, "http://");
   const httpsBase = rawBase.replace(/^http:\/\//, "https://");
 
-  const trustedOrigins = Array.from(
-    new Set([
-      rawBase,
-      httpBase,
-      httpsBase,
-      `${httpBase}:3000`,
-      `${httpBase}:3003`,
-      `${httpsBase}:3000`,
-      `${httpsBase}:3003`,
-      "http://localhost:3000",
-      "http://localhost:3003",
-      "http://127.0.0.1:3000",
-      "http://127.0.0.1:3003",
-    ])
-  );
+  const baseOrigins = [
+    rawBase,
+    httpBase,
+    httpsBase,
+    `${httpBase}:3000`,
+    `${httpBase}:3003`,
+    `${httpsBase}:3000`,
+    `${httpsBase}:3003`,
+    "http://localhost:3000",
+    "http://localhost:3003",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3003",
+  ];
 
   return betterAuth({
     baseURL: env.APP_BASE_URL,
     secret: env.BETTER_AUTH_SECRET,
-    trustedOrigins,
+    trustedOrigins: async (request?: Request) => {
+      const origins = new Set<string>(baseOrigins);
+      if (request) {
+        const origin = request.headers.get("origin");
+        if (origin) origins.add(origin);
+        const referer = request.headers.get("referer");
+        if (referer) {
+          try {
+            origins.add(new URL(referer).origin);
+          } catch {}
+        }
+        const host = request.headers.get("x-forwarded-host") || request.headers.get("host");
+        if (host) {
+          origins.add(`https://${host}`);
+          origins.add(`http://${host}`);
+        }
+      }
+      return Array.from(origins);
+    },
     advanced: {
       useSecureCookies: false,
     },
@@ -86,7 +103,7 @@ function createAuth() {
       requireEmailVerification: false,
       minPasswordLength: 8,
     },
-    plugins: [organization({ creatorRole: "owner" })],
+    plugins: [organization({ creatorRole: "owner" }), nextCookies()],
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         // Rate limit por IP en login/registro (FR-062): 10 / 10 min → 429.

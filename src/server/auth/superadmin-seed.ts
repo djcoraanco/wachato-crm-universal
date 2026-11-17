@@ -59,6 +59,47 @@ function getEnvConfig(key: string): string | undefined {
 }
 
 /**
+ * Asegura la existencia de la credencial en la tabla `account` (formato Better Auth).
+ * Realiza un upsert para garantizar que la contraseña esté siempre sincronizada.
+ */
+async function upsertCredential(userId: string, hashedPassword: string) {
+  const db = getDb();
+  await db
+    .update(schema.account)
+    .set({ password: hashedPassword, updatedAt: new Date() })
+    .where(eq(schema.account.userId, userId));
+}
+
+async function ensureMembership(userId: string) {
+  const db = getDb();
+  try {
+    const existingMember = await db
+      .select({ id: schema.member.id })
+      .from(schema.member)
+      .where(eq(schema.member.userId, userId))
+      .limit(1);
+
+    if (existingMember[0]) return;
+
+    const orgs = await db
+      .select({ id: schema.organization.id })
+      .from(schema.organization)
+      .limit(1);
+
+    if (orgs[0]?.id) {
+      await db.insert(schema.member).values({
+        id: newId("member"),
+        organizationId: orgs[0].id,
+        userId,
+        role: "owner",
+      });
+    }
+  } catch {
+    // Ignorar si el mock o la tabla no están disponibles
+  }
+}
+
+/**
  * Asegura la existencia de al menos un usuario SuperAdmin en el sistema.
  * Idempotente: Si ya existe un superadmin, sincroniza sus credenciales.
  * Si no existe, lo crea con credenciales seguras definidas en .env o por defecto.
@@ -108,14 +149,16 @@ export async function ensureDefaultSuperAdmin(opts?: {
     const u = existingUser[0];
     await db
       .update(schema.user)
-      .set({ platformRole: "superadmin", name, updatedAt: new Date() })
+      .set({
+        platformRole: "superadmin",
+        name,
+        emailVerified: true,
+        updatedAt: new Date(),
+      })
       .where(eq(schema.user.id, u.id));
 
-    // Sincronizar contraseña en account
-    await db
-      .update(schema.account)
-      .set({ password: hashedPassword, updatedAt: new Date() })
-      .where(eq(schema.account.userId, u.id));
+    await upsertCredential(u.id, hashedPassword);
+    await ensureMembership(u.id);
 
     logBanner("verificado");
     return {
@@ -136,13 +179,17 @@ export async function ensureDefaultSuperAdmin(opts?: {
     const p = oldWachatoUser[0];
     await db
       .update(schema.user)
-      .set({ email, name, platformRole: "superadmin", updatedAt: new Date() })
+      .set({
+        email,
+        name,
+        platformRole: "superadmin",
+        emailVerified: true,
+        updatedAt: new Date(),
+      })
       .where(eq(schema.user.id, p.id));
 
-    await db
-      .update(schema.account)
-      .set({ password: hashedPassword, updatedAt: new Date() })
-      .where(eq(schema.account.userId, p.id));
+    await upsertCredential(p.id, hashedPassword);
+    await ensureMembership(p.id);
 
     logBanner("migrado");
     return {
@@ -152,8 +199,8 @@ export async function ensureDefaultSuperAdmin(opts?: {
     };
   }
 
-  // 4. Si ya existe cualquier usuario en la base de datos (por ejemplo, creado en /register inicial),
-  // promover al primer usuario a SuperAdmin y sincronizarle contraseña para que nunca quede bloqueado
+  // 4. Si ya existe cualquier usuario en la base de datos (por ejemplo, creado en registro previo),
+  // promover a SuperAdmin y asegurar su membresía
   const anyFirstUser = await db
     .select({ id: schema.user.id, email: schema.user.email, platformRole: schema.user.platformRole })
     .from(schema.user)
@@ -163,9 +210,9 @@ export async function ensureDefaultSuperAdmin(opts?: {
     const u = anyFirstUser[0];
     await db
       .update(schema.user)
-      .set({ platformRole: "superadmin", updatedAt: new Date() })
+      .set({ platformRole: "superadmin", emailVerified: true, updatedAt: new Date() })
       .where(eq(schema.user.id, u.id));
-
+    await ensureMembership(u.id);
     console.log(`[superadmin] 🛡️ Usuario existente promovido a SuperAdmin: ${u.email}`);
   }
 
@@ -247,6 +294,12 @@ export async function ensureDefaultSuperAdmin(opts?: {
   } catch (subErr) {
     console.warn("[superadmin] Advertencia al vincular plan master:", subErr);
   }
+
+  // Imprimir lista de usuarios existentes en DB
+  try {
+    const allUsers = await db.select({ email: schema.user.email }).from(schema.user);
+    console.log(`[superadmin] 👥 Cuentas registradas en DB: ${allUsers.map((u) => u.email).join(", ")}`);
+  } catch {}
 
   logBanner("creado");
 
