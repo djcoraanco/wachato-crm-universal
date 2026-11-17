@@ -7,6 +7,7 @@ import {
   AlertTriangle,
   Bell,
   BellOff,
+  Blocks,
   CalendarDays,
   ChartColumn,
   FlaskConical,
@@ -217,6 +218,7 @@ export function AppNav({
   }
 
   mainNavItems.push({ href: "/results", label: "Estadísticas", icon: ChartColumn });
+  mainNavItems.push({ href: "/modules", label: "Módulos", icon: Blocks });
   mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });
 
   if (role === "owner" || role === "admin") {

@@ -64,10 +64,10 @@
 
 ### FASE 4: Motor Modular Nativo y SDK
 *Objetivo: Arquitectura precompilada en `modules/{module_id}/` con activación/desactivación dinámica en base de datos (`module_installations`).*
-- [ ] **Tarea 4.1:** Definir arquitectura y SDK en `src/lib/modules/` (`manifest.ts`, `schema.ts`, `navigation.ts`, `routes/`, `services/`, `tools.ts`) y persistencia en `module_installations`.
-- [ ] **Tarea 4.2:** Catálogo de Módulos en la interfaz (`Configuración → Módulos`) para activación/desactivación con 1 clic sin recompilación en runtime.
-- [ ] **Tarea 4.3:** Middleware de protección de rutas y filtrado dinámico del menú según módulos instalados.
-- [ ] **Tarea 4.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/04-motor-modulos.md`.
+- [X] **Tarea 4.1:** Definir arquitectura y SDK en `src/lib/modules/` (`manifest.ts`, `schema.ts`, `navigation.ts`, `routes/`, `services/`, `tools.ts`) y persistencia en `module_installations`.
+- [X] **Tarea 4.2:** Catálogo de Módulos en la interfaz (`Configuración → Módulos`) para activación/desactivación con 1 clic sin recompilación en runtime.
+- [X] **Tarea 4.3:** Middleware de protección de rutas y filtrado dinámico del menú según módulos instalados.
+- [X] **Tarea 4.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/04-motor-modulos.md`.
 
 ---
 

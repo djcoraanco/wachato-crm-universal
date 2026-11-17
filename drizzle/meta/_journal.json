@@ -190,6 +190,13 @@
       "when": 1794927027088,
       "tag": "0026_shallow_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794928352064,
+      "tag": "0027_sudden_juggernaut",
+      "breakpoints": true
     }
   ]
 }

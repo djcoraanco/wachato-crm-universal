@@ -1607,3 +1607,78 @@ export const crmTask = pgTable(
     index("crm_task_org_deal_idx").on(t.organizationId, t.dealId),
   ]
 );
+
+export const moduleInstallation = pgTable(
+  "module_installation",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    moduleId: text("module_id").notNull(),
+    status: text("status", { enum: ["active", "disabled", "uninstalled"] })
+      .notNull()
+      .default("active"),
+    version: text("version").notNull().default("1.0.0"),
+    config: jsonb("config").$type<Record<string, unknown>>().default({}),
+    installedAt: timestamp("installed_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("module_installation_org_module_idx").on(t.organizationId, t.moduleId),
+    index("module_installation_org_status_idx").on(t.organizationId, t.status),
+  ]
+);
+
+export const automationJob = pgTable(
+  "automation_job",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    automationId: text("automation_id").notNull(),
+    conversationId: text("conversation_id").references(() => conversation.id, { onDelete: "cascade" }),
+    contactId: text("contact_id").references(() => contact.id, { onDelete: "cascade" }),
+    stepIndex: integer("step_index").notNull().default(0),
+    actionType: text("action_type").notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>(),
+    status: text("status", { enum: ["pending", "processing", "completed", "failed", "cancelled"] })
+      .notNull()
+      .default("pending"),
+    runAt: timestamp("run_at").notNull().defaultNow(),
+    lockedAt: timestamp("locked_at"),
+    lockedBy: text("locked_by"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(3),
+    lastError: text("last_error"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("automation_job_pending_idx").on(t.status, t.runAt),
+    index("automation_job_org_status_idx").on(t.organizationId, t.status),
+  ]
+);
+
+export const auditLog = pgTable(
+  "audit_log",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    userId: text("user_id").references(() => user.id, { onDelete: "set null" }),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id"),
+    details: jsonb("details").$type<Record<string, unknown>>(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("audit_log_org_created_idx").on(t.organizationId, t.createdAt),
+    index("audit_log_org_entity_idx").on(t.organizationId, t.entityType, t.entityId),
+  ]
+);
