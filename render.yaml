@@ -82,6 +82,13 @@ services:
         value: http://vocero-nea:8000/vocero/dispatch
       - key: BRAIN_HEALTH_URL
         value: http://vocero-nea:8000/health
+      # Wachato Universal: Canales, Agenda y Atribución activos por defecto
+      - key: CHANNELS
+        value: "whatsapp,instagram,messenger,tiktok"
+      - key: AGENDA
+        value: "on"
+      - key: ATRIBUCION
+        value: "on"
       # Opcionales, cuando los tengas (guía en .env.example):
       # - key: OPENROUTER_API_TOKEN
       #   sync: false

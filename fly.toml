@@ -63,6 +63,9 @@ primary_region = "qro"
   # por tu dominio propio tras `fly certs add`. De ella sale la URL del webhook.
   APP_BASE_URL = "https://vocero-crm.fly.dev"
   META_GRAPH_API_VERSION = "v25.0"
+  CHANNELS = "whatsapp,instagram,messenger,tiktok"
+  AGENDA = "on"
+  ATRIBUCION = "on"
 
 [[mounts]]
   source = "vocero_data"

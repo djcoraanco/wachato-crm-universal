@@ -56,10 +56,10 @@ services:
       OPENROUTER_JUDGE_MODEL: ${OPENROUTER_JUDGE_MODEL:-}
       ALLOW_SIGNUP: ${ALLOW_SIGNUP:-}
       AGENT_COALESCE_MS: ${AGENT_COALESCE_MS:-6000}
-      # Opcionales: vacías = apagadas (guía de cada una en .env.example).
-      CHANNELS: ${CHANNELS:-}
-      AGENDA: ${AGENDA:-}
-      ATRIBUCION: ${ATRIBUCION:-}
+      # Wachato Universal: activos por defecto
+      CHANNELS: ${CHANNELS:-whatsapp,instagram,messenger,tiktok}
+      AGENDA: ${AGENDA:-on}
+      ATRIBUCION: ${ATRIBUCION:-on}
       BOT_API_KEY: ${BOT_API_KEY:-}
       # 2.0 — El cerebro: por defecto, el servicio `nea` de abajo. Con la
       # variable definida pero vacía en el .env, ninguno (bandeja manual).

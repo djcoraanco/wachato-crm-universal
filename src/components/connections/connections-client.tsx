@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   MessageCircle,
   RefreshCw,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 type Template = {
   name: string;
@@ -99,38 +101,54 @@ export function ConnectionsClient() {
     setLoading(false);
   }
 
+  const [channelStates, setChannelStates] = useState<Record<string, boolean>>({
+    wa: true,
+    ig: true,
+    fb: true,
+    tt: true,
+    cal: true,
+  });
+
   const channelsList = [
     {
       key: "wa",
       name: "WhatsApp Business (API oficial)",
       identifier: "+1 809-555-0142",
-      status: "Conectado",
       detail: "Calidad del número: Alta · Límite: 1,000 contactos nuevos/24 h",
       badgeColor: "bg-[#25D366]/15 text-[#25D366]",
+      href: "/settings/whatsapp",
     },
     {
       key: "ig",
       name: "Instagram",
       identifier: "@wachato.crm",
-      status: "Conectado",
       detail: "DMs, comentarios y respuestas a historias",
       badgeColor: "bg-[#EA4F86]/15 text-[#EA4F86]",
+      href: "/settings/instagram",
     },
     {
       key: "fb",
       name: "Facebook Messenger",
       identifier: "Página Oficial Wachato",
-      status: "Conectado",
       detail: "Mensajes de la página y de anuncios de Meta",
       badgeColor: "bg-[#5B97F7]/15 text-[#5B97F7]",
+      href: "/settings/messenger",
+    },
+    {
+      key: "tt",
+      name: "TikTok",
+      identifier: "@wachato.crm",
+      detail: "Mensajes directos comerciales (Zernio)",
+      badgeColor: "bg-panel2 text-fg border border-line",
+      href: "/settings/tiktok",
     },
     {
       key: "cal",
-      name: "Google Calendar",
+      name: "Google Calendar & Agenda",
       identifier: "contacto@wachato.com",
-      status: "Conectado",
       detail: "La IA sincroniza y solo ofrece horas libres del calendario",
       badgeColor: "bg-accent/15 text-accent",
+      href: "/settings/calendar",
     },
   ];
 
@@ -166,29 +184,71 @@ export function ConnectionsClient() {
         </Button>
       </div>
 
-      {/* Grid de Canales Conectados */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {channelsList.map((ch) => (
-          <div
-            key={ch.key}
-            className="flex flex-col justify-between rounded-xl border border-line bg-panel p-4 shadow-sm"
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className={cn("rounded px-2 py-0.5 text-xs font-bold", ch.badgeColor)}>
-                  {ch.key.toUpperCase()}
-                </span>
-                <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {ch.status}
-                </span>
+      {/* Grid de Canales Conectados y Control Manual */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {channelsList.map((ch) => {
+          const isActive = channelStates[ch.key] ?? true;
+          return (
+            <div
+              key={ch.key}
+              className={cn(
+                "flex flex-col justify-between rounded-xl border p-4 shadow-sm transition-all",
+                isActive
+                  ? "border-line bg-panel"
+                  : "border-line/40 bg-panel/50 opacity-75"
+              )}
+            >
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className={cn("rounded px-2 py-0.5 text-xs font-bold", ch.badgeColor)}>
+                    {ch.key.toUpperCase()}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      size="sm"
+                      label={`Activar ${ch.name}`}
+                      checked={isActive}
+                      onCheckedChange={(checked) =>
+                        setChannelStates((prev) => ({ ...prev, [ch.key]: checked }))
+                      }
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 rounded-full",
+                        isActive ? "bg-emerald-500 animate-pulse" : "bg-muted"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "text-[11px] font-semibold",
+                        isActive ? "text-emerald-400" : "text-muted"
+                      )}
+                    >
+                      {isActive ? "Conectado y Activo" : "Desactivado manualmente"}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-sm font-bold text-fg leading-tight">
+                    {ch.name}
+                  </h3>
+                  <p className="font-mono text-xs text-muted mt-0.5">{ch.identifier}</p>
+                </div>
               </div>
-              <h3 className="font-display text-base font-bold text-fg">{ch.name}</h3>
-              <p className="font-mono text-xs text-fg/90">{ch.identifier}</p>
+              <div className="mt-3 pt-2.5 border-t border-line/60 flex items-center justify-between">
+                <p className="text-[11px] text-muted line-clamp-1">{ch.detail}</p>
+                <Link
+                  href={ch.href}
+                  className="text-xs font-semibold text-accent hover:underline shrink-0 ml-1"
+                >
+                  Ajustes →
+                </Link>
+              </div>
             </div>
-            <p className="mt-3 text-[11.5px] leading-relaxed text-muted">{ch.detail}</p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Grid de 2 columnas: Requisitos de Meta y Plantillas */}
