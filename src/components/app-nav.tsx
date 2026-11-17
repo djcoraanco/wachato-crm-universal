@@ -68,7 +68,7 @@ export function navItemClass(active: boolean) {
     "flex items-center justify-between gap-2 px-3 py-2.5 rounded-[9px] font-semibold text-[14px] transition-colors whitespace-nowrap",
     active
       ? "bg-accent-soft text-accent"
-      : "text-fg/85 hover:bg-panel2 hover:text-fg font-medium"
+      : "text-text-2 hover:bg-panel2 hover:text-foreground font-medium"
   );
 }
 
@@ -265,7 +265,7 @@ export function AppNav({
           "flex items-center justify-between gap-2 px-3 py-2 rounded-[9px] text-[13.5px] transition-colors whitespace-nowrap",
           active
             ? "bg-accent-soft text-accent font-semibold"
-            : "text-fg/85 hover:bg-panel2 hover:text-fg font-medium"
+            : "text-text-2 hover:bg-panel2 hover:text-foreground font-medium"
         )}
         aria-current={active ? "page" : undefined}
       >
@@ -303,7 +303,7 @@ export function AppNav({
         {navSections.map((sec, idx) => (
           <div key={sec.title ?? idx} className="space-y-0.5">
             {sec.title && (
-              <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+              <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-text-3">
                 {sec.title}
               </div>
             )}
