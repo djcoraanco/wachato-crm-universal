@@ -74,9 +74,10 @@ describe("/onboarding", () => {
 });
 
 describe("la raíz", () => {
-  it("sin sesión sigue yendo a la Bandeja (que manda al login)", async () => {
+  it("sin sesión presenta la landing page pública del SaaS", async () => {
     getSessionOrNull.mockResolvedValue(null);
-    await expect(Home()).rejects.toThrow("redirect:/inbox");
+    const page = await Home();
+    expect(page).toBeDefined();
     expect(guideFirst).not.toHaveBeenCalled();
   });
 

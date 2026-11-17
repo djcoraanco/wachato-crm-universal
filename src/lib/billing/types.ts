@@ -44,7 +44,7 @@ export type AgencyBranding = {
 };
 
 export type LandingHeroConfig = {
-  badge: string;
+  badge?: string;
   title: string;
   subtitle: string;
   ctaText: string;
@@ -65,16 +65,16 @@ export type LandingPricingConfig = {
   headline: string;
   subheadline: string;
   highlightedPlanSlug?: string;
-  yearlyDiscountPercent: number;
+  yearlyDiscountPercent?: number;
 };
 
 export type LandingTestimonialItem = {
   name: string;
   role: string;
-  company: string;
+  company?: string;
   avatarUrl?: string;
   quote: string;
-  rating: number;
+  rating?: number;
 };
 
 export type LandingFaqItem = {
