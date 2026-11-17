@@ -10,6 +10,17 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import type {
+  AgencyBranding,
+  LandingFaqItem,
+  LandingFeatureItem,
+  LandingHeroConfig,
+  LandingPricingConfig,
+  LandingSeoConfig,
+  LandingTestimonialItem,
+  LandingThemeConfig,
+  PlanLimits,
+} from "@/lib/billing/types";
 
 /**
  * Tiempo: todas las columnas son `timestamp without time zone` y el marco es
@@ -30,6 +41,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  platformRole: text("platform_role").notNull().default("user"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -75,14 +87,185 @@ export const verification = pgTable("verification", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const organization = pgTable("organization", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").unique(),
-  logo: text("logo"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  metadata: text("metadata"),
-});
+/* ============================================================
+ * SaaS Multi-Agencia & Facturación (Planes, Suscripciones, Agencias)
+ * ============================================================ */
+
+export const agency = pgTable(
+  "agency",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").unique().notNull(),
+    subdomain: text("subdomain").unique(),
+    customDomain: text("custom_domain").unique(),
+    ownerUserId: text("owner_user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "restrict" }),
+    branding: jsonb("branding").$type<AgencyBranding>(),
+    stripeCustomerId: text("stripe_customer_id"),
+    paypalPayerId: text("paypal_payer_id"),
+    status: text("status", { enum: ["active", "suspended", "trial", "past_due"] })
+      .notNull()
+      .default("active"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("agency_slug_idx").on(t.slug),
+    index("agency_subdomain_idx").on(t.subdomain),
+    index("agency_owner_idx").on(t.ownerUserId),
+  ]
+);
+
+export const agencyMember = pgTable(
+  "agency_member",
+  {
+    id: text("id").primaryKey(),
+    agencyId: text("agency_id")
+      .notNull()
+      .references(() => agency.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["agency_owner", "agency_admin", "agency_member"] })
+      .notNull()
+      .default("agency_member"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("agency_member_agency_idx").on(t.agencyId),
+    index("agency_member_user_idx").on(t.userId),
+  ]
+);
+
+export const plan = pgTable(
+  "plan",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").unique().notNull(),
+    tier: text("tier", { enum: ["starter", "pro", "business", "agency", "enterprise"] })
+      .notNull()
+      .default("starter"),
+    description: text("description"),
+    priceMonthlyUsd: integer("price_monthly_usd").notNull().default(0),
+    priceYearlyUsd: integer("price_yearly_usd").notNull().default(0),
+    stripePriceIdMonthly: text("stripe_price_id_monthly"),
+    stripePriceIdYearly: text("stripe_price_id_yearly"),
+    stripeProductId: text("stripe_product_id"),
+    paypalPlanIdMonthly: text("paypal_plan_id_monthly"),
+    paypalPlanIdYearly: text("paypal_plan_id_yearly"),
+    limits: jsonb("limits").notNull().$type<PlanLimits>(),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("plan_slug_idx").on(t.slug),
+    index("plan_active_order_idx").on(t.isActive, t.sortOrder),
+  ]
+);
+
+export const organization = pgTable(
+  "organization",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").unique(),
+    logo: text("logo"),
+    agencyId: text("agency_id").references(() => agency.id, { onDelete: "set null" }),
+    planId: text("plan_id").references(() => plan.id, { onDelete: "set null" }),
+    isAgencyClient: boolean("is_agency_client").notNull().default(false),
+    customDomain: text("custom_domain"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    metadata: text("metadata"),
+  },
+  (t) => [
+    index("organization_agency_idx").on(t.agencyId),
+    index("organization_plan_idx").on(t.planId),
+  ]
+);
+
+export const subscription = pgTable(
+  "subscription",
+  {
+    id: text("id").primaryKey(),
+    agencyId: text("agency_id").references(() => agency.id, { onDelete: "cascade" }),
+    organizationId: text("organization_id").references(() => organization.id, { onDelete: "cascade" }),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => plan.id, { onDelete: "restrict" }),
+    provider: text("provider", { enum: ["stripe", "paypal", "manual"] })
+      .notNull()
+      .default("manual"),
+    providerSubscriptionId: text("provider_subscription_id"),
+    providerCustomerId: text("provider_customer_id"),
+    status: text("status", { enum: ["active", "trialing", "past_due", "canceled", "incomplete", "paused"] })
+      .notNull()
+      .default("active"),
+    billingInterval: text("billing_interval", { enum: ["monthly", "yearly"] })
+      .notNull()
+      .default("monthly"),
+    currentPeriodStart: timestamp("current_period_start").notNull().defaultNow(),
+    currentPeriodEnd: timestamp("current_period_end").notNull(),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    canceledAt: timestamp("canceled_at"),
+    trialEnd: timestamp("trial_end"),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("subscription_agency_idx").on(t.agencyId),
+    index("subscription_org_idx").on(t.organizationId),
+    index("subscription_provider_sub_idx").on(t.providerSubscriptionId),
+    index("subscription_status_idx").on(t.status),
+  ]
+);
+
+export const usageQuota = pgTable(
+  "usage_quota",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    periodMonth: text("period_month").notNull(),
+    aiTokensUsed: integer("ai_tokens_used").notNull().default(0),
+    messagesSent: integer("messages_sent").notNull().default(0),
+    mediaStorageBytes: integer("media_storage_bytes").notNull().default(0),
+    contactsCount: integer("contacts_count").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("usage_quota_org_period_idx").on(t.organizationId, t.periodMonth),
+    index("usage_quota_period_idx").on(t.periodMonth),
+  ]
+);
+
+export const landingContent = pgTable(
+  "landing_content",
+  {
+    id: text("id").primaryKey(),
+    agencyId: text("agency_id").references(() => agency.id, { onDelete: "cascade" }),
+    hero: jsonb("hero").notNull().$type<LandingHeroConfig>(),
+    features: jsonb("features").notNull().$type<LandingFeatureItem[]>(),
+    pricing: jsonb("pricing").notNull().$type<LandingPricingConfig>(),
+    testimonials: jsonb("testimonials").notNull().$type<LandingTestimonialItem[]>(),
+    faq: jsonb("faq").notNull().$type<LandingFaqItem[]>(),
+    theme: jsonb("theme").notNull().$type<LandingThemeConfig>(),
+    seo: jsonb("seo").notNull().$type<LandingSeoConfig>(),
+    isPublished: boolean("is_published").notNull().default(true),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("landing_content_agency_idx").on(t.agencyId),
+  ]
+);
 
 export const member = pgTable("member", {
   id: text("id").primaryKey(),

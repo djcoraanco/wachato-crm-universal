@@ -39,7 +39,7 @@
 # ============================================================
 services:
   app:
-    image: wachato-crm-universal:${WACHATO_VERSION:-latest}
+    image: wachato-crm-universal:${VOCERO_CRM_VERSION:-2.5.0}
     build: .
     restart: unless-stopped
     ports:

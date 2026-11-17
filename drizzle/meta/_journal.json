@@ -204,6 +204,13 @@
       "when": 1794929018005,
       "tag": "0028_stiff_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794935693025,
+      "tag": "0029_lovely_jackal",
+      "breakpoints": true
     }
   ]
 }

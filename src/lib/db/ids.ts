@@ -52,6 +52,13 @@ const prefixes = {
   automationJob: "job",
   auditLog: "aud",
   moduleInstallation: "mod",
+  // SaaS Multi-Agencia & Facturación
+  agency: "ag",
+  agencyMember: "amem",
+  plan: "plan",
+  subscription: "sub",
+  usageQuota: "quota",
+  landingContent: "land",
 } as const;
 
 export type IdKind = keyof typeof prefixes;
