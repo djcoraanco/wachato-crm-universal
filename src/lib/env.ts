@@ -91,6 +91,9 @@ export const envSchema = z.object({
   PAYPAL_CLIENT_SECRET: z.string().optional(),
   PAYPAL_WEBHOOK_ID: z.string().optional(),
   PAYPAL_ENVIRONMENT: z.enum(["sandbox", "live"]).default("sandbox"),
+  SUPERADMIN_EMAIL: z.string().email().optional(),
+  SUPERADMIN_PASSWORD: z.string().min(8).optional(),
+  SUPERADMIN_NAME: z.string().optional(),
   NODE_ENV: z.string().default("development"),
 });
 

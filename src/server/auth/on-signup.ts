@@ -36,6 +36,13 @@ export async function onUserCreated(userId: string, userName: string) {
       name: userName ? `Negocio de ${userName}` : "Mi negocio",
       slug: "principal",
     });
+
+    // El primer usuario de la instancia recibe automáticamente platformRole superadmin
+    await tx
+      .update(schema.user)
+      .set({ platformRole: "superadmin" })
+      .where(eq(schema.user.id, userId));
+
     await tx.insert(schema.member).values({
       id: newId("member"),
       organizationId: orgId,
