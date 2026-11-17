@@ -102,8 +102,8 @@
 
 ### FASE 8: Seguridad, Backups, Telemetría de Agencia y Release
 *Objetivo: Blindaje empresarial, auditoría, respaldo integral, analíticas y verificación para producción.*
-- [ ] **Tarea 8.1:** RBAC granular (Superadmin, Administrador, Operador, Recepcionista, Solo Lectura con `assertPermission()`) y bitácora inmutable `audit_logs`.
-- [ ] **Tarea 8.2:** Motor de backups nativo PostgreSQL con `pg_dump` comprimido `.sql.gz` y función "Export All" a ZIP (base de datos + medios).
-- [ ] **Tarea 8.3:** Vista de Estadísticas (`#estadisticas`: KPIs con deltas comparativos, barras apiladas multicanal por día, embudo visual y tabla de atribución de anuncios).
-- [ ] **Tarea 8.4:** Telemetría para agencias (`GET /api/agency/health` protegido por `AGENCY_API_KEY`) y asistente de presets iniciales por rubro.
-- [ ] **Tarea 8.5:** Compilación final de producción (`pnpm build`), suite completa de tests de regresión y bitácora `docs/implementation/08-release-final.md`.
+- [X] **Tarea 8.1:** RBAC granular (Superadmin, Administrador, Operador, Recepcionista, Solo Lectura con `assertPermission()`) y bitácora inmutable `audit_logs`.
+- [X] **Tarea 8.2:** Motor de backups nativo PostgreSQL con `pg_dump` comprimido `.sql.gz` y función "Export All" a ZIP (base de datos + medios).
+- [X] **Tarea 8.3:** Vista de Estadísticas (`#estadisticas`: KPIs con deltas comparativos, barras apiladas multicanal por día, embudo visual y tabla de atribución de anuncios).
+- [X] **Tarea 8.4:** Telemetría para agencias (`GET /api/agency/health` protegido por `AGENCY_API_KEY`) y asistente de presets iniciales por rubro.
+- [X] **Tarea 8.5:** Compilación final de producción (`pnpm build`), suite completa de tests de regresión y bitácora `docs/implementation/08-release-final.md`.
