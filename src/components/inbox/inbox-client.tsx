@@ -18,11 +18,12 @@ import { useEvents } from "@/components/use-events";
 import { ConversationList } from "./conversation-list";
 import { MessageThread } from "./message-thread";
 import { Composer } from "./composer";
+import { Switch } from "@/components/ui/switch";
 import {
   EVENTO_ABRIR_CONVERSACION,
   setConversacionAbierta,
 } from "@/components/avisos-de-mensajes";
-import { citaDe } from "./helpers";
+import { citaDe, formatRemaining } from "./helpers";
 import { ContactPanel } from "./contact-panel";
 
 /**
@@ -455,40 +456,61 @@ export function InboxClient({
                     {multiChannel && <ChannelBadge channel={selected.channel} />}
                     <span className="truncate">{selected.contact.name}</span>
                   </p>
-                  <p
-                    className={cn(
-                      "mt-0.5 font-mono text-[10.5px] tracking-[0.04em]",
-                      selected.windowOpen
-                        ? "font-medium text-success-text"
-                        : selected.humanWindow?.open
-                          ? "font-medium text-info-text"
-                          : "text-text-3"
-                    )}
-                  >
-                    {selected.windowOpen
-                      ? "ventana abierta"
-                      : selected.humanWindow?.open
-                        ? // 024: pasadas 24 h en Instagram o Messenger solo
-                          // contesta una persona. No se llama «atención
-                          // humana»: eso ya es el traspaso, con la IA en pausa.
-                          "ventana humana"
-                        : selected.contact.phone
-                        ? formatPhone(selected.contact.phone)
-                        : // Instagram no tiene teléfono: decir "Sin teléfono"
-                          // sería contestar una pregunta que nadie hizo.
-                          CHANNEL_LABEL[selected.channel]}
+                  <p className="mt-0.5 text-[11px] text-muted">
+                    {selected.contact.phone
+                      ? formatPhone(selected.contact.phone)
+                      : CHANNEL_LABEL[selected.channel]}
                   </p>
                 </div>
               </div>
-              {!panelOpen && (
-                <button
-                  onClick={() => togglePanel(true)}
-                  aria-label="Mostrar detalles"
-                  className="shrink-0 rounded-full border border-border-strong p-1.5 text-text-3 transition-colors hover:border-text-3 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+
+              {/* Indicadores de Ventana y Toggle IA */}
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "hidden sm:inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-semibold tracking-tight",
+                    selected.windowOpen
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                      : selected.humanWindow?.open
+                      ? "bg-sky-500/10 text-sky-400 border border-sky-500/20"
+                      : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                  )}
                 >
-                  <PanelRight className="h-4 w-4" strokeWidth={1.7} />
-                </button>
-              )}
+                  <span
+                    className={cn(
+                      "h-1.5 w-1.5 rounded-full",
+                      selected.windowOpen || selected.humanWindow?.open
+                        ? "bg-emerald-500 animate-pulse"
+                        : "bg-rose-500"
+                    )}
+                  />
+                  {selected.windowOpen
+                    ? `Ventana 24 h: ${formatRemaining(selected.windowRemainingMs)}`
+                    : selected.humanWindow?.open
+                    ? `Ventana humana: ${formatRemaining(selected.humanWindow.remainingMs)}`
+                    : "Ventana 24 h cerrada"}
+                </span>
+
+                <div className="flex items-center gap-2 rounded-lg bg-panel2 px-2.5 py-1 border border-line">
+                  <span className="text-xs font-semibold text-fg">IA responde</span>
+                  <Switch
+                    size="sm"
+                    label="IA responde"
+                    checked={selected.aiEnabled && !selected.handoffAt}
+                    onCheckedChange={(next) => void patchConversation({ aiEnabled: next })}
+                  />
+                </div>
+
+                {!panelOpen && (
+                  <button
+                    onClick={() => togglePanel(true)}
+                    aria-label="Mostrar detalles"
+                    className="shrink-0 rounded-full border border-border-strong p-1.5 text-text-3 transition-colors hover:border-text-3 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <PanelRight className="h-4 w-4" strokeWidth={1.7} />
+                  </button>
+                )}
+              </div>
             </header>
             <Composer
               // 028: uno por conversación. Sin la llave, el borrador, el adjunto

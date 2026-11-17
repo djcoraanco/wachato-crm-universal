@@ -55,10 +55,10 @@
 
 ### FASE 3: Bandeja en Tiempo Real, Medios Vocales y Conexiones
 *Objetivo: Llevar la bandeja al diseño exacto de 3 columnas del prototipo, integrar Whisper para notas de voz y la vista de conexiones de Meta.*
-- [ ] **Tarea 3.1:** Refactorizar la Bandeja interactiva con 3 paneles, filtros (Todos, WA, IG, FB, Humano), switch "Simular cliente" vs. "Responder como equipo", monitor visual de ventana de 24h con bloqueo de texto libre y selector de plantillas, toggle "IA responde" y panel lateral de contacto.
-- [ ] **Tarea 3.2:** Pipeline de notas de voz entrantes (`audio/ogg`) con transcripción automática Whisper (Groq/OpenAI compatible), visualización en chat y pase al contexto del agente como `[Nota de voz transcrita]`.
-- [ ] **Tarea 3.3:** Implementar vista de Conexiones y Meta (`#conexiones`: estado de canales, requisitos Meta, tabla de plantillas y log de eventos CAPI en tiempo real).
-- [ ] **Tarea 3.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/03-bandeja-medios.md`.
+- [X] **Tarea 3.1:** Refactorizar la Bandeja interactiva con 3 paneles, filtros (Todos, WA, IG, FB, Humano), switch "Simular cliente" vs. "Responder como equipo", monitor visual de ventana de 24h con bloqueo de texto libre y selector de plantillas, toggle "IA responde" y panel lateral de contacto.
+- [X] **Tarea 3.2:** Pipeline de notas de voz entrantes (`audio/ogg`) con transcripción automática Whisper (Groq/OpenAI compatible), visualización en chat y pase al contexto del agente como `[Nota de voz transcrita]`.
+- [X] **Tarea 3.3:** Implementar vista de Conexiones y Meta (`#conexiones`: estado de canales, requisitos Meta, tabla de plantillas y log de eventos CAPI en tiempo real).
+- [X] **Tarea 3.4:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/03-bandeja-medios.md`.
 
 ---
 

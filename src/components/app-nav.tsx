@@ -217,7 +217,7 @@ export function AppNav({
   }
 
   mainNavItems.push({ href: "/results", label: "Estadísticas", icon: ChartColumn });
-  mainNavItems.push({ href: "/settings", label: "Conexiones y Meta", icon: Settings });
+  mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });
 
   if (role === "owner" || role === "admin") {
     mainNavItems.push({ href: "/onboarding", label: "Guía de inicio", icon: ListChecks });

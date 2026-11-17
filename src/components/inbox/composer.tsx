@@ -96,6 +96,8 @@ export function Composer({
   const [token, setToken] = useState<{ inicio: number; consulta: string } | null>(null);
   const [activa, setActiva] = useState(0);
   const [cerradoEn, setCerradoEn] = useState<number | null>(null);
+  // Switch Wachato: Simular cliente vs. Responder como equipo
+  const [rolEnvio, setRolEnvio] = useState<"equipo" | "cliente">("equipo");
   // 050 — Responder al cliente o anotar para el equipo.
   const [modo, setModo] = useState<"responder" | "nota">("responder");
   const notaRef = useRef<HTMLTextAreaElement>(null);
@@ -400,6 +402,29 @@ export function Composer({
 
     const value = text.trim();
     if (!value) return;
+
+    if (rolEnvio === "cliente") {
+      setText("");
+      if (taRef.current) taRef.current.style.height = "auto";
+      setSending(true);
+      const err = await apiSend(
+        `/api/conversations/${conversation.id}/simulate-inbound`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ text: value }),
+        }
+      );
+      setSending(false);
+      if (err) {
+        setError(err);
+        setText(value);
+      } else {
+        onSent();
+      }
+      return;
+    }
+
     // Aquí NO se espera al servidor. Enviar tarda ~1.5 s (el viaje a Meta) y
     // durante ese rato el renglón siguiente se escribía encima del anterior y
     // salía todo como un solo mensaje. El campo se limpia ya; la burbuja
@@ -566,14 +591,73 @@ export function Composer({
     );
   }
 
+  const human = conversation.humanWindow;
+  const canal = CHANNEL_LABEL[conversation.channel];
+
+  const selectorRol = (
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 border-b border-line pb-2">
+      <div className="flex items-center rounded-lg border border-line bg-panel2 p-0.5 text-xs font-semibold">
+        <button
+          type="button"
+          onClick={() => setRolEnvio("cliente")}
+          className={cn(
+            "rounded-md px-2.5 py-1 transition-colors",
+            rolEnvio === "cliente"
+              ? "bg-accent text-on-accent shadow-sm"
+              : "text-muted hover:text-fg"
+          )}
+        >
+          Simular cliente
+        </button>
+        <button
+          type="button"
+          onClick={() => setRolEnvio("equipo")}
+          className={cn(
+            "rounded-md px-2.5 py-1 transition-colors",
+            rolEnvio === "equipo"
+              ? "bg-accent text-on-accent shadow-sm"
+              : "text-muted hover:text-fg"
+          )}
+        >
+          Responder como equipo
+        </button>
+      </div>
+      <p className="text-[11.5px] text-muted">
+        {rolEnvio === "cliente"
+          ? "Escribe como si fueras el cliente para probar al agente de IA. Prueba «precio», «¿tienen cita?» o «viernes»."
+          : `Tu respuesta sale por ${canal}.`}
+      </p>
+    </div>
+  );
+
+  if (rolEnvio === "equipo" && !conversation.windowOpen && conversation.channel === "tiktok") {
+    return withDropZone(
+      <div className="bg-chat px-[18px] py-3.5">
+        {selectorRol}
+        {pestanas}
+        <div className="flex items-start gap-2 rounded-md border border-warning-soft bg-warning-tint p-3 text-sm text-warning-text">
+          <Clock3 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.7} />
+          <div>
+            <p className="font-medium">La ventana de 48 horas de TikTok está cerrada.</p>
+            <p className="opacity-80">
+              TikTok solo deja contestar dentro de las 48 horas siguientes al
+              último mensaje del cliente, y no permite reabrir la conversación.
+              Podrás escribirle cuando vuelva a mandar un mensaje.
+            </p>
+          </div>
+        </div>
+      </div>,
+      true
+    );
+  }
+
   // 024 — Instagram y Messenger no tienen plantillas. Pasadas 24 horas una
   // persona todavía puede contestar (hasta 7 días, sigue abajo con su aviso);
   // pasado ese plazo no hay nada que ofrecer salvo esperar al cliente.
-  const human = conversation.humanWindow;
-  const canal = CHANNEL_LABEL[conversation.channel];
-  if (!conversation.windowOpen && human && !human.open) {
+  if (rolEnvio === "equipo" && !conversation.windowOpen && human && !human.open) {
     return withDropZone(
       <div className="bg-chat px-[18px] py-3.5">
+        {selectorRol}
         {pestanas}
         <div
           data-window="closed"
@@ -594,9 +678,10 @@ export function Composer({
     );
   }
 
-  if (!conversation.windowOpen && !human) {
+  if (rolEnvio === "equipo" && !conversation.windowOpen && !human) {
     return withDropZone(
       <div className="bg-chat px-[18px] py-3.5">
+        {selectorRol}
         {pestanas}
         <div className="mb-3 flex items-start gap-2 rounded-md border border-warning-soft bg-warning-tint p-3 text-sm text-warning-text">
           <Clock3 className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={1.7} />
@@ -627,6 +712,7 @@ export function Composer({
 
   return withDropZone(
     <div className="relative bg-chat px-[18px] pb-3.5 pt-2">
+      {selectorRol}
       {pestanas}
 
       {soloPersona && (

@@ -589,6 +589,12 @@ async function avisarAdjuntoListo(
       media: serializeMessage(fila.message, fila.asset).media,
     },
   });
+
+  if (fila.asset.kind === "audio") {
+    void import("@/server/ai/whisper").then(({ transcribeMessageAudio }) =>
+      transcribeMessageAudio(organizationId, messageId, assetId)
+    );
+  }
 }
 
 export function serializeMessage(

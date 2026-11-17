@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Cable,
+  Calendar,
   Check,
   ChevronRight,
   Inbox,
@@ -368,6 +369,17 @@ export function ContactPanel({
         {/* Ficha: lo que se SABE del lead. Va antes de Notas —lo que alguien
             OPINA— porque es lo que se consulta a mitad de una conversación. */}
         <FichaPanel ficha={ficha} onSave={saveFicha} />
+
+        {/* Agendamiento rápido */}
+        <div className="border-b p-4">
+          <Link
+            href={`/bookings?contact=${conversation.contact.id}`}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2 text-xs font-bold text-on-accent shadow-sm transition-opacity hover:opacity-90"
+          >
+            <Calendar className="h-4 w-4" />
+            Agendar cita rápida
+          </Link>
+        </div>
 
         {/* Notas */}
         <section className={cn("p-4", onDeleteConversation && "border-b")}>

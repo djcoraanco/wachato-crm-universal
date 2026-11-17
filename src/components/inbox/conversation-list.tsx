@@ -98,6 +98,7 @@ export function ConversationList({
   const [query, setQuery] = useState("");
   // 052 (enmienda) — Dos pestañas y un botón «Filtrar» con lo demás.
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [wachatoFilter, setWachatoFilter] = useState<"all" | "wa" | "ig" | "fb" | "human">("all");
   const [soloPorVencer, setSoloPorVencer] = useState(false);
   const [soloAnuncios, setSoloAnuncios] = useState(false);
   const [menuFiltros, setMenuFiltros] = useState(false);
@@ -189,10 +190,22 @@ export function ConversationList({
   const deAnuncios = inInbox.filter((c) => c.anuncio !== null);
   // 052 — A la ventana le quedan 2 h o menos.
   const venciendo = inInbox.filter(porVencer);
+  const matchWachato = (c: ConversationDto) => {
+    if (wachatoFilter === "all") return true;
+    if (wachatoFilter === "wa") return c.channel === "whatsapp";
+    if (wachatoFilter === "ig") return c.channel === "instagram";
+    if (wachatoFilter === "fb") return c.channel === "messenger";
+    if (wachatoFilter === "human") return !c.aiEnabled || Boolean(c.handoffAt);
+    return true;
+  };
+
   // Lo del menú «Filtrar» se aplica antes de las pestañas: «Todas» y «No
   // leídas» cuentan dentro de lo filtrado.
   const filtrado = inInbox.filter(
-    (c) => (!soloPorVencer || porVencer(c)) && (!soloAnuncios || c.anuncio !== null)
+    (c) =>
+      matchWachato(c) &&
+      (!soloPorVencer || porVencer(c)) &&
+      (!soloAnuncios || c.anuncio !== null)
   );
   const unreadCount = filtrado.filter((c) => c.unreadCount > 0).length;
   const visible = filter === "unread" ? filtrado.filter((c) => c.unreadCount > 0) : filtrado;
@@ -289,6 +302,33 @@ export function ConversationList({
           )}
         </div>
       </header>
+
+      {/* Filtros de canales y humano estilo Wachato */}
+      <div className="flex items-center gap-1.5 overflow-x-auto border-b px-4 py-2 text-xs">
+        {(
+          [
+            ["all", "Todos"],
+            ["wa", "WhatsApp"],
+            ["ig", "Instagram"],
+            ["fb", "Messenger"],
+            ["human", "Con humano"],
+          ] as const
+        ).map(([k, n]) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => setWachatoFilter(k)}
+            className={cn(
+              "rounded-full px-2.5 py-1 font-semibold whitespace-nowrap transition-colors",
+              wachatoFilter === k
+                ? "bg-accent text-on-accent shadow-sm"
+                : "bg-panel2 text-muted hover:text-fg hover:bg-line"
+            )}
+          >
+            {n}
+          </button>
+        ))}
+      </div>
 
       {/* 052 (enmienda) — «Todas | No leídas» y un solo botón «Filtrar»: la
           etapa, «Por vencer» y «De anuncios» viven en su menú, y lo elegido
