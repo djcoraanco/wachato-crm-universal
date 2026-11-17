@@ -81,6 +81,14 @@ export const envSchema = z.object({
   MEDIA_BUCKET_REGION: z.string().default("auto"),
   MEDIA_BUCKET_KEY_ID: z.string().optional(),
   MEDIA_BUCKET_SECRET: z.string().optional(),
+  // SaaS Billing — Pasarelas de Pago Automatizadas
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PUBLIC_KEY: z.string().optional(),
+  PAYPAL_CLIENT_ID: z.string().optional(),
+  PAYPAL_CLIENT_SECRET: z.string().optional(),
+  PAYPAL_WEBHOOK_ID: z.string().optional(),
+  PAYPAL_ENVIRONMENT: z.enum(["sandbox", "live"]).default("sandbox"),
   NODE_ENV: z.string().default("development"),
 });
 

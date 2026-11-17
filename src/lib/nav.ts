@@ -105,6 +105,7 @@ export function settingsSections({
   instagram = false,
   messenger = false,
   tiktok = false,
+  billing = false,
 }: {
   agenda?: boolean;
   /** 016 — "Anuncios" existe solo con la bandera ATRIBUCION. */
@@ -115,6 +116,8 @@ export function settingsSections({
   messenger?: boolean;
   /** 022 — "TikTok", igual: solo con el canal en CHANNELS. */
   tiktok?: boolean;
+  /** Facturación y suscripciones SaaS. */
+  billing?: boolean;
 }): SettingsSection[] {
   const canales: SettingsLink[] = [];
   // 023 — "Estado" reúne todos los canales; con WhatsApp solo no aporta nada
@@ -141,6 +144,7 @@ export function settingsSections({
     { href: "/settings/team", label: "Equipo" },
   ];
   if (atribucion) negocio.push({ href: "/settings/ads", label: "Anuncios" });
+  if (billing) negocio.push({ href: "/settings/billing", label: "Facturación" });
 
   return [
     { title: "Canales", links: canales },
