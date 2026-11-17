@@ -150,6 +150,13 @@ export type ContactDto = {
   ficha?: FichaDto;
   /** 027 — El agente no le responde a esta persona: la atiende el dueño. */
   aiPaused?: boolean;
+  /** Canal principal (whatsapp, instagram, messenger, tiktok) */
+  channel?: string;
+  channelName?: string;
+  tags?: string[];
+  docId?: string;
+  email?: string;
+  lastName?: string;
 };
 
 /* ============================================================

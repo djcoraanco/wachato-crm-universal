@@ -45,3 +45,37 @@ export const POST = withAuth(async (session, req: Request) => {
     .returning();
   return Response.json({ stage: inserted[0] }, { status: 201 });
 });
+
+const patchStageSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().trim().min(1).max(60).optional(),
+  capiEvent: z
+    .enum(["", "Lead", "Contact", "Schedule", "SubmitApplication", "InitiateCheckout", "Purchase"])
+    .optional(),
+  position: z.number().int().min(0).optional(),
+});
+
+export const PATCH = withAuth(async (session, req: Request) => {
+  const body = await parseBody(req, patchStageSchema);
+  if (!body.ok) return body.response;
+
+  const db = getDb();
+  const updates: Record<string, unknown> = {};
+  if (body.data.name !== undefined) updates.name = body.data.name;
+  if (body.data.capiEvent !== undefined) updates.capiEvent = body.data.capiEvent;
+  if (body.data.position !== undefined) updates.position = body.data.position;
+
+  const updated = await db
+    .update(schema.pipelineStage)
+    .set(updates)
+    .where(
+      scoped(
+        schema.pipelineStage.organizationId,
+        session.organizationId,
+        sql`${schema.pipelineStage.id} = ${body.data.id}`
+      )
+    )
+    .returning();
+
+  return Response.json({ stage: updated[0] });
+});

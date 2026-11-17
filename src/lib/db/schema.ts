@@ -145,6 +145,20 @@ export const contact = pgTable(
     /** Business-Scoped User ID si se conoce (003). */
     waUserId: text("wa_user_id"),
     name: text("name").notNull(),
+    lastName: text("last_name"),
+    docId: text("doc_id"),
+    email: text("email"),
+    phones: jsonb("phones").$type<string[]>(),
+    emails: jsonb("emails").$type<string[]>(),
+    avatar: text("avatar"),
+    birthdate: timestamp("birthdate"),
+    address: text("address"),
+    preferredChannel: text("preferred_channel", {
+      enum: ["whatsapp", "instagram", "messenger", "tiktok", "email", "phone"],
+    }),
+    tags: jsonb("tags").$type<string[]>(),
+    privacyConsent: boolean("privacy_consent").notNull().default(false),
+    customData: jsonb("custom_data").$type<Record<string, unknown>>(),
     /**
      * Quién puso este nombre.
      *
@@ -214,6 +228,8 @@ export const pipelineStage = pgTable(
       .references(() => organization.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
     position: integer("position").notNull(),
+    pipelineId: text("pipeline_id"),
+    capiEvent: text("capi_event"),
     /** open = etapa normal · won / lost = anclas no borrables */
     kind: text("kind", { enum: ["open", "won", "lost"] })
       .notNull()
@@ -1393,5 +1409,201 @@ export const conversationNote = pgTable(
   },
   (t) => [
     index("conversation_note_conv_idx").on(t.organizationId, t.conversationId, t.createdAt),
+  ]
+);
+
+/* ============================================================
+ * Wachato CRM Universal — Core B2B, Custom Fields, Deals & Tasks
+ * ============================================================ */
+
+export const company = pgTable(
+  "company",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    taxId: text("tax_id"),
+    phone: text("phone"),
+    email: text("email"),
+    website: text("website"),
+    address: text("address"),
+    industry: text("industry"),
+    parentId: text("parent_id"),
+    notes: text("notes"),
+    customData: jsonb("custom_data").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("company_org_idx").on(t.organizationId),
+    index("company_org_name_idx").on(t.organizationId, t.name),
+  ]
+);
+
+export const companyContact = pgTable(
+  "company_contact",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    companyId: text("company_id")
+      .notNull()
+      .references(() => company.id, { onDelete: "cascade" }),
+    contactId: text("contact_id")
+      .notNull()
+      .references(() => contact.id, { onDelete: "cascade" }),
+    role: text("role"),
+    isPrimary: boolean("is_primary").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("company_contact_uq").on(t.organizationId, t.companyId, t.contactId),
+    index("company_contact_org_company_idx").on(t.organizationId, t.companyId),
+    index("company_contact_org_contact_idx").on(t.organizationId, t.contactId),
+  ]
+);
+
+export const customField = pgTable(
+  "custom_field",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    targetEntity: text("target_entity", {
+      enum: ["contact", "company", "deal"],
+    }).notNull(),
+    key: text("key").notNull(),
+    label: text("label").notNull(),
+    fieldType: text("field_type", {
+      enum: [
+        "text",
+        "number",
+        "currency",
+        "date",
+        "boolean",
+        "select",
+        "multiselect",
+        "file",
+        "json",
+      ],
+    }).notNull(),
+    options: jsonb("options").$type<string[]>(),
+    required: boolean("required").notNull().default(false),
+    defaultValue: text("default_value"),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("custom_field_org_target_key_uq").on(t.organizationId, t.targetEntity, t.key),
+    index("custom_field_org_target_idx").on(t.organizationId, t.targetEntity),
+  ]
+);
+
+export const customFieldValue = pgTable(
+  "custom_field_value",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    fieldId: text("field_id")
+      .notNull()
+      .references(() => customField.id, { onDelete: "cascade" }),
+    entityId: text("entity_id").notNull(),
+    value: jsonb("value"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("custom_field_value_org_entity_field_uq").on(
+      t.organizationId,
+      t.entityId,
+      t.fieldId
+    ),
+    index("custom_field_value_org_entity_idx").on(t.organizationId, t.entityId),
+  ]
+);
+
+export const pipeline = pgTable(
+  "pipeline",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("pipeline_org_idx").on(t.organizationId)]
+);
+
+export const deal = pgTable(
+  "deal",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    pipelineId: text("pipeline_id").references(() => pipeline.id, { onDelete: "cascade" }),
+    stageId: text("stage_id")
+      .notNull()
+      .references(() => pipelineStage.id, { onDelete: "cascade" }),
+    contactId: text("contact_id").references(() => contact.id, { onDelete: "set null" }),
+    companyId: text("company_id").references(() => company.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    value: integer("value").notNull().default(0),
+    currency: text("currency").notNull().default("DOP"),
+    priority: text("priority", { enum: ["baja", "media", "alta", "urgente"] })
+      .notNull()
+      .default("media"),
+    status: text("status", { enum: ["open", "won", "lost"] })
+      .notNull()
+      .default("open"),
+    expectedCloseDate: timestamp("expected_close_date"),
+    capiEvent: text("capi_event"),
+    customData: jsonb("custom_data").$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("deal_org_stage_idx").on(t.organizationId, t.stageId),
+    index("deal_org_contact_idx").on(t.organizationId, t.contactId),
+    index("deal_org_company_idx").on(t.organizationId, t.companyId),
+  ]
+);
+
+export const crmTask = pgTable(
+  "crm_task",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    contactId: text("contact_id").references(() => contact.id, { onDelete: "cascade" }),
+    dealId: text("deal_id").references(() => deal.id, { onDelete: "cascade" }),
+    assignedTo: text("assigned_to").references(() => user.id, { onDelete: "set null" }),
+    title: text("title").notNull(),
+    description: text("description"),
+    activityType: text("activity_type", {
+      enum: ["llamada", "reunion", "tarea", "nota", "correo"],
+    })
+      .notNull()
+      .default("tarea"),
+    dueDate: timestamp("due_date"),
+    completed: boolean("completed").notNull().default(false),
+    completedAt: timestamp("completed_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("crm_task_org_contact_idx").on(t.organizationId, t.contactId),
+    index("crm_task_org_deal_idx").on(t.organizationId, t.dealId),
   ]
 );

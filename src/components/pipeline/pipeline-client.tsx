@@ -31,15 +31,33 @@ export type BoardLead = {
   stageId: string;
   position: number;
   lastActivityAt: string | null;
-  contact: { id: string; name: string; phone: string | null };
+  contact: {
+    id: string;
+    name: string;
+    phone: string | null;
+    channel?: string;
+    tags?: string[];
+  };
   conversationId: string | null;
   amountCents: number | null;
   currency: string | null;
   priority: PriorityValue | null;
 };
 
+export type PipelineStage = StageDto & { capiEvent?: string };
+
+const CAPI_EVENTS = [
+  "",
+  "Lead",
+  "Contact",
+  "Schedule",
+  "SubmitApplication",
+  "InitiateCheckout",
+  "Purchase",
+];
+
 export function PipelineClient() {
-  const [stages, setStages] = useState<StageDto[]>([]);
+  const [stages, setStages] = useState<PipelineStage[]>([]);
   const [currency, setCurrency] = useState("MXN");
   const [leads, setLeads] = useState<BoardLead[]>([]);
   const [activeLead, setActiveLead] = useState<BoardLead | null>(null);
@@ -68,7 +86,7 @@ export function PipelineClient() {
     const res = await fetch("/api/pipeline/board").catch(() => null);
     if (!res?.ok) return;
     const data = (await res.json()) as {
-      stages: StageDto[];
+      stages: PipelineStage[];
       leads: BoardLead[];
       currency?: string;
     };
@@ -76,6 +94,17 @@ export function PipelineClient() {
     setStages(data.stages);
     setLeads(data.leads);
   }, []);
+
+  async function actualizarCapiEvent(stageId: string, capiEvent: string | null) {
+    setStages((prev) =>
+      prev.map((s) => (s.id === stageId ? { ...s, capiEvent: capiEvent ?? undefined } : s))
+    );
+    await fetch("/api/pipeline/stages", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: stageId, capiEvent }),
+    }).catch(() => null);
+  }
 
   useEffect(() => {
     void refetch();
@@ -195,6 +224,7 @@ export function PipelineClient() {
                 currency={currency}
                 onEditAmount={setEditandoMonto}
                 onOpen={(l) => setAbiertoId(l.id)}
+                onCapiChange={actualizarCapiEvent}
                 leads={leads
                   .filter((l) => l.stageId === stage.id)
                   .sort((a, b) => a.position - b.position)}
@@ -295,12 +325,14 @@ function StageColumn({
   currency,
   onEditAmount,
   onOpen,
+  onCapiChange,
 }: {
-  stage: StageDto;
+  stage: PipelineStage;
   leads: BoardLead[];
   currency: string;
   onEditAmount: (lead: BoardLead) => void;
   onOpen: (lead: BoardLead) => void;
+  onCapiChange?: (stageId: string, capiEvent: string | null) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
   return (
@@ -311,17 +343,38 @@ function StageColumn({
         isOver && "border-brand ring-[3px] ring-brand-soft"
       )}
     >
-      <div className="flex items-center justify-between px-3 py-2.5">
-        <span className="flex items-center gap-1.5 text-[13.5px] font-bold tracking-tight">
-          {stage.kind === "won" && <Trophy className="h-3.5 w-3.5 text-primary" />}
-          {stage.kind === "lost" && (
-            <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
-          )}
-          {stage.name}
-        </span>
-        <span className="rounded-full border border-border-strong bg-background px-2 py-0.5 font-mono text-[11px] text-text-3">
-          {leads.length}
-        </span>
+      <div className="border-b border-border-strong px-3 py-2">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5 text-[13.5px] font-bold tracking-tight">
+            {stage.kind === "won" && <Trophy className="h-3.5 w-3.5 text-primary" />}
+            {stage.kind === "lost" && (
+              <XCircle className="h-3.5 w-3.5 text-muted-foreground" />
+            )}
+            {stage.name}
+          </span>
+          <span className="rounded-full border border-border-strong bg-background px-2 py-0.5 font-mono text-[11px] text-text-3">
+            {leads.length}
+          </span>
+        </div>
+        {onCapiChange && (
+          <div className="mt-1.5 flex items-center justify-between gap-1 text-[10px]">
+            <span className="text-muted-foreground">Evento CAPI:</span>
+            <select
+              aria-label={`Evento Meta CAPI para ${stage.name}`}
+              value={stage.capiEvent ?? ""}
+              onPointerDown={(e) => e.stopPropagation()}
+              onChange={(e) => onCapiChange(stage.id, e.target.value || null)}
+              className="h-5 rounded border border-border-strong bg-background px-1 text-[10px] text-foreground outline-none focus:border-brand"
+            >
+              <option value="">Sin evento</option>
+              {CAPI_EVENTS.filter(Boolean).map((evt) => (
+                <option key={evt} value={evt}>
+                  {evt}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
       <div className="flex-1 space-y-2 overflow-y-auto p-2">
         {leads.map((lead) => (
@@ -422,6 +475,16 @@ function LeadCard({
   overlay?: boolean;
   onEditAmount?: (lead: BoardLead) => void;
 }) {
+  const ch = lead.contact.channel;
+  const channelBadge =
+    ch === "instagram"
+      ? { label: "IG", bg: "bg-[#EA4F86]/15 text-[#EA4F86]" }
+      : ch === "messenger"
+      ? { label: "FB", bg: "bg-[#5B97F7]/15 text-[#5B97F7]" }
+      : ch === "tiktok"
+      ? { label: "TT", bg: "bg-foreground/15 text-foreground" }
+      : { label: "WA", bg: "bg-[#25D366]/15 text-[#25D366]" };
+
   return (
     <div
       className={cn(
@@ -434,6 +497,14 @@ function LeadCard({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <p className="truncate text-sm font-semibold">{lead.contact.name}</p>
+            <span
+              className={cn(
+                "rounded px-1 py-0.5 text-[9px] font-bold uppercase",
+                channelBadge.bg
+              )}
+            >
+              {channelBadge.label}
+            </span>
             {lead.priority && <PriorityBadge value={lead.priority} />}
           </div>
           <p className="text-[11px] text-muted-foreground">
@@ -454,6 +525,20 @@ function LeadCard({
           </Link>
         )}
       </div>
+
+      {lead.contact.tags && lead.contact.tags.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1">
+          {lead.contact.tags.slice(0, 3).map((t) => (
+            <span
+              key={t}
+              className="rounded-full bg-subtle px-1.5 py-0.5 text-[9px] text-muted-foreground"
+            >
+              #{t}
+            </span>
+          ))}
+        </div>
+      )}
+
       {!overlay && onEditAmount && (
         <button
           // `stopPropagation` en pointerdown: sin esto, tocar el monto empieza

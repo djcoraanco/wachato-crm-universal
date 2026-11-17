@@ -7,6 +7,8 @@ import {
   Archive,
   ArchiveRestore,
   BotOff,
+  FileSpreadsheet,
+  FileText,
   MessageSquareText,
   Search,
   Send,
@@ -15,7 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import type { ContactDto } from "@/lib/types";
-import { formatPhone } from "@/lib/utils";
+import { cn, formatPhone } from "@/lib/utils";
 import { ContactAvatar } from "@/components/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,6 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { SOURCE_LABELS } from "@/server/contact-source";
 import { priorityRank } from "@/server/leads/priority";
 import { PriorityBadge } from "@/components/pipeline/priority-picker";
+import { exportContactsToExcel, exportContactsToPdf } from "@/lib/contacts-export";
 import { ImportContactsDialog } from "./import-contacts-dialog";
 import { NewContactDialog } from "./new-contact-dialog";
 import { StartConversation } from "./start-conversation";
@@ -34,6 +37,7 @@ export function ContactsClient() {
   const [contacts, setContacts] = useState<ContactDto[]>([]);
   const [query, setQuery] = useState("");
   const [stage, setStage] = useState("all");
+  const [channel, setChannel] = useState("all");
   const [stages, setStages] = useState<string[]>([]);
   const [showArchived, setShowArchived] = useState(false);
   const [editing, setEditing] = useState<ContactDto | null>(null);
@@ -90,6 +94,11 @@ export function ContactsClient() {
     void refetch();
   }
 
+  const filteredContacts = contacts.filter((c) => {
+    if (channel !== "all" && (c.channel ?? "whatsapp") !== channel) return false;
+    return true;
+  });
+
   return (
     <div className="flex h-full flex-col">
       <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
@@ -103,6 +112,24 @@ export function ContactsClient() {
             <Upload className="mr-1.5 h-4 w-4" strokeWidth={1.8} />
             Importar
           </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => exportContactsToExcel(filteredContacts, "Wachato CRM")}
+            title="Descargar lista filtrada en Excel"
+          >
+            <FileSpreadsheet className="mr-1.5 h-4 w-4 text-ok" />
+            Descargar Excel
+          </Button>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => exportContactsToPdf(filteredContacts, "Wachato CRM")}
+            title="Descargar lista filtrada en PDF horizontal"
+          >
+            <FileText className="mr-1.5 h-4 w-4 text-accent" />
+            Descargar PDF
+          </Button>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
           <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -114,6 +141,18 @@ export function ContactsClient() {
             />
             Ver archivados
           </label>
+          <select
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+            aria-label="Filtrar por canal"
+            className="h-9 rounded-md border border-input bg-card px-2 text-sm"
+          >
+            <option value="all">Todos los canales</option>
+            <option value="whatsapp">WhatsApp</option>
+            <option value="instagram">Instagram</option>
+            <option value="messenger">Messenger</option>
+            <option value="tiktok">TikTok</option>
+          </select>
           {stages.length > 0 && (
             <select
               value={stage}
@@ -143,19 +182,23 @@ export function ContactsClient() {
         </div>
       </header>
 
+      <div className="flex items-center justify-between text-xs text-muted px-4 py-2 bg-panel2/30 border-b border-line">
+        <span>
+          {filteredContacts.length} de {contacts.length} contactos · la descarga incluye solo los que ves con estos filtros
+        </span>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-        {contacts.length === 0 ? (
-          query.trim() || stage !== "all" ? (
+        {filteredContacts.length === 0 ? (
+          query.trim() || stage !== "all" || channel !== "all" ? (
             <EmptyState
               icon={Search}
               className="h-full"
               title="Sin resultados"
               description={
                 <>
-                  Nadie coincide con
-                  {query.trim() ? ` «${query.trim()}»` : ""}
-                  {query.trim() && stage !== "all" ? " en" : ""}
-                  {stage !== "all" ? ` la etapa «${stage}»` : ""}.
+                  Nadie coincide con los filtros seleccionados
+                  {query.trim() ? ` («${query.trim()}»)` : ""}.
                 </>
               }
             />
@@ -169,7 +212,7 @@ export function ContactsClient() {
           )
         ) : (
           <ul className="space-y-2">
-            {contacts.map((c) => (
+            {filteredContacts.map((c) => (
               <li
                 key={c.id}
                 className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border bg-card px-3 py-3 sm:flex-nowrap sm:gap-x-4 sm:px-4"
@@ -179,8 +222,29 @@ export function ContactsClient() {
                     renglón en el teléfono en vez de exprimir el nombre. */}
                 <div className="min-w-[60%] flex-1 sm:min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="truncate text-sm font-medium">
+                    <span className="truncate text-sm font-semibold">
                       {c.name}
+                    </span>
+                    <span
+                      className={cn(
+                        "inline-grid place-items-center min-w-[26px] h-[18px] rounded-[5px] text-[10px] font-bold text-white px-1",
+                        c.channel === "instagram"
+                          ? "bg-ig"
+                          : c.channel === "messenger"
+                          ? "bg-fb"
+                          : c.channel === "tiktok"
+                          ? "bg-black"
+                          : "bg-wa"
+                      )}
+                      title={`Canal: ${c.channel ?? "whatsapp"}`}
+                    >
+                      {c.channel === "instagram"
+                        ? "IG"
+                        : c.channel === "messenger"
+                        ? "FB"
+                        : c.channel === "tiktok"
+                        ? "TT"
+                        : "WA"}
                     </span>
                     {c.priority && <PriorityBadge value={c.priority} />}
                     {c.stageName && (

@@ -45,6 +45,7 @@ export const GET = withAuth(async (session) => {
       name: s.name,
       position: s.position,
       kind: s.kind,
+      capiEvent: s.capiEvent ?? "",
     })),
     leads: leads.map((r) => ({
       id: r.lead.id,
@@ -58,6 +59,9 @@ export const GET = withAuth(async (session) => {
         id: r.contact.id,
         name: r.contact.name,
         phone: r.contact.phone,
+        channel: r.contact.channel ?? "whatsapp",
+        tags: (r.contact.tags as string[] | null) ?? [],
+        docId: r.contact.docId ?? null,
       },
       conversationId: r.conversationId,
     })),

@@ -44,12 +44,12 @@
 
 ### FASE 2: Core CRM Universal y Modelo Extendido
 *Objetivo: Extender el modelo de datos relacional para empresas B2B, campos personalizados dinámicos JSONB indexados con GIN, pipelines múltiples y tratos.*
-- [ ] **Tarea 2.1:** Migraciones aditivas en Drizzle para Contactos y Empresas (`companies`, `company_contacts`).
-- [ ] **Tarea 2.2:** Sistema de Campos Personalizados (`custom_fields`, `custom_field_values`) con validación Zod y JSONB indexado en PostgreSQL.
-- [ ] **Tarea 2.3:** Pipelines múltiples y Tratos (`deals`) con registro de etapas y eventos Meta Conversions API (CAPI).
-- [ ] **Tarea 2.4:** Implementar vista de Contactos según el prototipo (búsqueda, filtros, tabla y exportadores nativos a Excel `.xlsx` y PDF horizontal `.pdf`).
-- [ ] **Tarea 2.5:** Implementar vista de Pipeline Kanban interactivo con drag-and-drop, recálculo económico en vivo y selectores de evento CAPI en columnas.
-- [ ] **Tarea 2.6:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/02-core-crm.md`.
+- [X] **Tarea 2.1:** Migraciones aditivas en Drizzle para Contactos y Empresas (`companies`, `company_contacts`).
+- [X] **Tarea 2.2:** Sistema de Campos Personalizados (`custom_fields`, `custom_field_values`) con validación Zod y JSONB indexado en PostgreSQL.
+- [X] **Tarea 2.3:** Pipelines múltiples y Tratos (`deals`) con registro de etapas y eventos Meta Conversions API (CAPI).
+- [X] **Tarea 2.4:** Implementar vista de Contactos según el prototipo (búsqueda, filtros, tabla y exportadores nativos a Excel `.xlsx` y PDF horizontal `.pdf`).
+- [X] **Tarea 2.5:** Implementar vista de Pipeline Kanban interactivo con drag-and-drop, recálculo económico en vivo y selectores de evento CAPI en columnas.
+- [X] **Tarea 2.6:** Ejecución de Gates (`pnpm typecheck` && `pnpm lint` && `pnpm test`) y bitácora `docs/implementation/02-core-crm.md`.
 
 ---
 

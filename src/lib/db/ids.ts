@@ -41,6 +41,17 @@ const prefixes = {
   quickReply: "qr",
   // 050 — notas internas del hilo
   conversationNote: "nota",
+  // Wachato CRM Universal
+  company: "cmp",
+  companyContact: "cc",
+  customField: "cf",
+  customFieldValue: "cfv",
+  pipeline: "pipe",
+  deal: "dl",
+  task: "tsk",
+  automationJob: "job",
+  auditLog: "aud",
+  moduleInstallation: "mod",
 } as const;
 
 export type IdKind = keyof typeof prefixes;
