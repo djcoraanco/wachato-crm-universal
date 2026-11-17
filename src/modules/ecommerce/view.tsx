@@ -169,7 +169,7 @@ export function EcommerceModuleView() {
               <input
                 type="text"
                 readOnly
-                value="https://checkout.wachato.com/pay/order_98412?gateway=stripe&amount=4050"
+                value="https://checkout.crm.com/pay/order_98412?gateway=stripe&amount=4050"
                 className="flex-1 bg-panel border border-line rounded-lg px-3 py-2 text-xs font-mono text-muted select-all"
               />
               <button

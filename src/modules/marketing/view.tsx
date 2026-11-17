@@ -35,18 +35,18 @@ export function MarketingModuleView() {
               </span>
             </div>
             <p className="text-xs text-muted">
-              Wachato emite un payload cada vez que un lead avanza de etapa o se califica.
+              El CRM emite un payload cada vez que un lead avanza de etapa o se califica.
             </p>
             <div className="flex items-center gap-2">
               <input
                 type="text"
                 readOnly
-                value="https://crm.wachato.com/api/webhooks/marketing/outgoing"
+                value="https://crm.dominio.com/api/webhooks/marketing/outgoing"
                 className="flex-1 bg-panel border border-line rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-muted select-all"
               />
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText("https://crm.wachato.com/api/webhooks/marketing/outgoing");
+                  navigator.clipboard.writeText("https://crm.dominio.com/api/webhooks/marketing/outgoing");
                   setCopied(true);
                   setTimeout(() => setCopied(false), 1500);
                 }}

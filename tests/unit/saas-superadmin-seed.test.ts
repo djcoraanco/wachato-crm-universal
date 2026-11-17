@@ -25,7 +25,7 @@ vi.mock("@/lib/db", () => ({
             if (hasSuperAdmin) return Promise.resolve([hasSuperAdmin]);
 
             // Si busca por email
-            const byEmail = dbUsers.find((u) => u.email === "admin@wachato.com");
+            const byEmail = dbUsers.find((u) => u.email === "admin@crm.com");
             if (byEmail) return Promise.resolve([byEmail]);
 
             return Promise.resolve([]);
@@ -98,17 +98,17 @@ describe("SaaS SuperAdmin Auto-Seed & Protección", () => {
 
   it("crea automáticamente el SuperAdmin por defecto cuando no existe ninguno", async () => {
     const res = await ensureDefaultSuperAdmin({
-      email: "admin@wachato.com",
+      email: "admin@crm.com",
       password: "SuperPassword123!",
       name: "Master Admin",
     });
 
     expect(res.created).toBe(true);
-    expect(res.email).toBe("admin@wachato.com");
+    expect(res.email).toBe("admin@crm.com");
 
     expect(dbUsers.length).toBe(1);
     expect(dbUsers[0]?.platformRole).toBe("superadmin");
-    expect(dbUsers[0]?.email).toBe("admin@wachato.com");
+    expect(dbUsers[0]?.email).toBe("admin@crm.com");
 
     expect(dbAccounts.length).toBe(1);
     expect(dbAccounts[0]?.password).toBe("hashed_pass_mock_123");
@@ -120,13 +120,13 @@ describe("SaaS SuperAdmin Auto-Seed & Protección", () => {
   it("es idempotente y no crea duplicados si el superadmin ya existe", async () => {
     dbUsers.push({
       id: "usr_existing_super",
-      email: "admin@wachato.com",
+      email: "admin@crm.com",
       platformRole: "superadmin",
     });
 
     const res = await ensureDefaultSuperAdmin();
     expect(res.created).toBe(false);
-    expect(res.email).toBe("admin@wachato.com");
+    expect(res.email).toBe("admin@crm.com");
     expect(dbAccounts.length).toBe(0);
   });
 });

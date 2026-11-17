@@ -90,7 +90,7 @@ export function CalendarClient() {
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               Google Calendar conectado
             </span>
-            <span className="text-xs text-muted">contacto@wachato.com</span>
+            <span className="text-xs text-muted">contacto@crm.com</span>
           </div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-fg">
             Calendario Semanal

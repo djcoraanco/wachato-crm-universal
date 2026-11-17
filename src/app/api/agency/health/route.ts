@@ -27,7 +27,7 @@ export async function GET(req: Request) {
 
     return Response.json({
       status: "healthy",
-      service: "Wachato CRM Universal",
+      service: "CRM Universal",
       version: "2.0.0",
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime()),

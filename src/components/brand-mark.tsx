@@ -53,35 +53,24 @@ export function BrandMark({
  */
 export function WachatoLogo({
   className,
-  accentColor = "var(--accent)",
+  name = "CRM",
 }: {
   className?: string;
+  name?: string;
   accentColor?: string;
 }) {
   return (
     <div
       className={cn(
-        "flex items-center font-display font-black text-[28px] lg:text-[30px] tracking-[-0.02em] text-fg leading-none select-none",
+        "flex items-center gap-2 font-display font-black text-[22px] tracking-tight text-fg leading-none select-none",
         className
       )}
-      aria-label="wachato"
+      aria-label={name}
     >
-      <span>wachat</span>
-      <svg
-        viewBox="0 0 100 100"
-        aria-hidden="true"
-        className="w-[0.95em] h-[0.95em] ml-[0.02em] translate-y-[0.1em] shrink-0"
-      >
-        <circle
-          cx="54"
-          cy="44"
-          r="32"
-          fill="none"
-          stroke={accentColor}
-          strokeWidth="20"
-        />
-        <path d="M22 60 L12 96 L44 78 Z" fill={accentColor} />
-      </svg>
+      <div className="w-8 h-8 rounded-lg bg-accent text-on-accent flex items-center justify-center text-xs font-black shadow-sm">
+        {name.slice(0, 2).toUpperCase()}
+      </div>
+      <span>{name}</span>
     </div>
   );
 }

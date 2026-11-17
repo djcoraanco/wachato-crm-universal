@@ -121,7 +121,7 @@ export function BackupsClient() {
         <ShieldCheck className="h-5 w-5 text-accent shrink-0 mt-0.5" />
         <div>
           <b className="text-fg block mb-0.5">Soberanía de Datos Garantizada</b>
-          Tus datos te pertenecen al 100%. Las copias no dependen de la nube de terceros ni de servicios externos de almacenamiento propietario. Puedes restablecer el estado en cualquier instancia de Wachato CRM con Postgres en segundos.
+          Tus datos te pertenecen al 100%. Las copias no dependen de la nube de terceros ni de servicios externos de almacenamiento propietario. Puedes restablecer el estado en cualquier instancia de este CRM con Postgres en segundos.
         </div>
       </div>
     </div>

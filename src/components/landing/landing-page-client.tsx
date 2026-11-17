@@ -16,11 +16,12 @@ interface LandingPageClientProps {
 export function LandingPageClient({ content }: LandingPageClientProps) {
   const primaryColor = content.theme?.primaryColor || "#00C4C0";
   const accentColor = content.theme?.accentColor || "#00E5E0";
+  const brandName = content.seo?.metaTitle?.split("—")[0]?.trim() || "CRM";
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 selection:bg-cyan-500 selection:text-slate-950 flex flex-col font-sans">
       {/* Barra de navegación superior */}
-      <LandingNavbar primaryColor={primaryColor} />
+      <LandingNavbar primaryColor={primaryColor} brandName={brandName} />
 
       <main className="flex-1">
         {/* Sección Hero con preview del dashboard */}
@@ -54,7 +55,7 @@ export function LandingPageClient({ content }: LandingPageClientProps) {
       </main>
 
       {/* Footer corporativo */}
-      <LandingFooter primaryColor={primaryColor} />
+      <LandingFooter primaryColor={primaryColor} brandName={brandName} />
     </div>
   );
 }

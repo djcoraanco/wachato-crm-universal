@@ -77,7 +77,7 @@ export async function createPayPalSubscription(params: {
 
   // Si no hay un plan ID de PayPal específico pre-creado en la consola de PayPal,
   // se utiliza un fallback de suscripción o el ID configurado
-  const resolvedPlanId = paypalPlanId || `P-WACHATO-${plan.slug.toUpperCase()}-${isYearly ? "YEARLY" : "MONTHLY"}`;
+  const resolvedPlanId = paypalPlanId || `P-CRM-${plan.slug.toUpperCase()}-${isYearly ? "YEARLY" : "MONTHLY"}`;
 
   const response = await fetch(`${getPayPalBaseUrl()}/v1/billing/subscriptions`, {
     method: "POST",
@@ -90,7 +90,7 @@ export async function createPayPalSubscription(params: {
       plan_id: resolvedPlanId,
       custom_id: customIdPayload,
       application_context: {
-        brand_name: "Wachato CRM",
+        brand_name: "CRM",
         locale: "es-ES",
         shipping_preference: "NO_SHIPPING",
         user_action: "SUBSCRIBE_NOW",

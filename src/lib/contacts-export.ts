@@ -36,7 +36,7 @@ function downloadBlob(filename: string, blob: Blob) {
 
 export function exportContactsToExcel(
   contacts: ExportableContact[],
-  _businessName = "Wachato CRM"
+  _businessName = "CRM"
 ) {
   const dateStr = new Date().toISOString().slice(0, 10);
   const filename = `contactos-${dateStr}.xlsx`;
@@ -69,7 +69,7 @@ export function exportContactsToExcel(
 
 export function exportContactsToPdf(
   contacts: ExportableContact[],
-  businessName = "Wachato CRM"
+  businessName = "CRM"
 ) {
   const dateStr = new Date().toISOString().slice(0, 10);
   const filename = `contactos-${dateStr}.pdf`;
@@ -82,7 +82,7 @@ export function exportContactsToPdf(
   doc.setFontSize(9);
   doc.setTextColor(110, 120, 130);
   doc.text(
-    `Exportado desde Wachato el ${new Date().toLocaleDateString("es-DO")} · ${contacts.length} contactos`,
+    `Exportado el ${new Date().toLocaleDateString("es-DO")} · ${contacts.length} contactos`,
     14,
     22
   );

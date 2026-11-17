@@ -320,7 +320,7 @@ export default function AgencyPage() {
                 className="w-full text-sm px-3 py-2 rounded-l-lg border bg-background text-foreground font-mono"
               />
               <span className="px-3 py-2 text-xs border border-l-0 rounded-r-lg bg-accent text-text-2 font-mono">
-                .wachato.com
+                .dominio.com
               </span>
             </div>
           </div>
@@ -402,7 +402,7 @@ export default function AgencyPage() {
             Subdominio Oficial
           </div>
           <div className="text-sm font-mono text-brand truncate">
-            {agency.subdomain ? `${agency.subdomain}.wachato.com` : "No asignado"}
+            {agency.subdomain ? `${agency.subdomain}.dominio.com` : "No asignado"}
           </div>
         </div>
 
@@ -598,7 +598,7 @@ export default function AgencyPage() {
                 className="w-full text-sm px-3 py-2 rounded-lg border bg-background text-foreground font-mono"
               />
               <p className="text-[11px] text-text-2">
-                Apunta un registro CNAME en tu DNS hacia el host de tu servidor de Wachato.
+                Apunta un registro CNAME en tu DNS hacia el host de tu servidor CRM.
               </p>
             </div>
           </div>

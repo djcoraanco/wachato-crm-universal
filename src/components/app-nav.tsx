@@ -25,7 +25,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { WachatoLogo } from "@/components/brand-mark";
+import { BrandLogo } from "@/components/brand-mark";
 import { BotonInstalar } from "@/components/pwa";
 import { BotonActivarAvisos } from "@/components/activar-avisos";
 import { limpiarBorradores } from "@/lib/borradores";
@@ -257,8 +257,8 @@ export function AppNav({
   const sidebarContent = (
     <>
       <div className="flex items-center justify-between pb-3">
-        <Link href="/inbox" aria-label="Wachato">
-          <WachatoLogo />
+        <Link href="/inbox" aria-label={branding.name || "CRM"}>
+          <BrandLogo branding={branding} size="md" />
         </Link>
         {onClose && (
           <button

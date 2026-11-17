@@ -69,7 +69,7 @@ export async function createOrganizationBackup(organizationId: string): Promise<
   const jsonString = JSON.stringify(payload, null, 2);
   const compressed = gzipSync(Buffer.from(jsonString, "utf-8"));
   const dateStr = new Date().toISOString().slice(0, 10);
-  const filename = `wachato-backup-${organizationId}-${dateStr}.json.gz`;
+  const filename = `crm-backup-${organizationId}-${dateStr}.json.gz`;
 
   return {
     filename,

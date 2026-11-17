@@ -77,7 +77,7 @@ export async function createStripeCheckoutSession(params: {
         currency: "usd",
         product_data: {
           name: `${plan.name} (${isYearly ? "Anual" : "Mensual"})`,
-          description: plan.description ?? `Suscripción a ${plan.name} en Wachato CRM`,
+          description: plan.description ?? `Suscripción a ${plan.name}`,
         },
         unit_amount: unitAmount,
         recurring: {

@@ -70,8 +70,9 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata(): Promise<Metadata> {
   const branding = await getBranding().catch(() => DEFAULT_BRANDING);
   const producto = productName([...enabledChannels()]);
+  const pageTitle = branding.name === "CRM" ? "CRM — Plataforma Multicanal" : `${branding.name} — ${producto}`;
   return {
-    title: `${branding.name} — ${producto}`,
+    title: pageTitle,
     description: `${producto} con agente de IA y Laboratorio de auto-evaluación`,
     // El `?v=` cambia con la marca: los navegadores guardan el favicon con una
     // insistencia notable y, sin eso, el logo nuevo tarda días en aparecer.

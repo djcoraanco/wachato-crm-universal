@@ -94,7 +94,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContentPayload = {
       role: "Directora Médica",
       company: "Clínica Dental Estética",
       quote:
-        "Wachato transformó nuestra atención. El agente califica a los pacientes, les explica tratamientos y agenda citas en el calendario automáticamente.",
+        "La plataforma transformó nuestra atención. El agente califica a los pacientes, les explica tratamientos y agenda citas en el calendario automáticamente.",
       rating: 5,
     },
     {
@@ -148,7 +148,7 @@ export const DEFAULT_LANDING_CONTENT: LandingContentPayload = {
     panelBg: "#13222B",
   },
   seo: {
-    metaTitle: "Wachato CRM Universal — CRM de WhatsApp con Agente de IA para Negocios",
+    metaTitle: "CRM Universal — CRM de WhatsApp y Multicanal con Agente de IA para Negocios",
     metaDescription:
       "Plataforma CRM omnicanal con WhatsApp Cloud API oficial, pipeline kanban, automatizaciones y agentes de inteligencia artificial para aumentar tus ventas.",
   },

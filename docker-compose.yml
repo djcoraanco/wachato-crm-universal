@@ -44,6 +44,9 @@ services:
       context: ${DOCKER_BUILD_CONTEXT:-https://github.com/djcoraanco/wachato-crm-universal.git#main}
       dockerfile: Dockerfile
     restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
     ports:
       - "${PORT:-3000}:3000"
     environment:
@@ -60,9 +63,9 @@ services:
       OPENROUTER_JUDGE_MODEL: ${OPENROUTER_JUDGE_MODEL:-}
       ALLOW_SIGNUP: ${ALLOW_SIGNUP:-}
       AGENT_COALESCE_MS: ${AGENT_COALESCE_MS:-6000}
-      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
-      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
-      SUPERADMIN_NAME: ${SUPERADMIN_NAME:-}
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-admin@crm.com}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-Admin123456!}
+      SUPERADMIN_NAME: ${SUPERADMIN_NAME:-Super Admin}
       # Wachato Universal: activos por defecto
       CHANNELS: ${CHANNELS:-whatsapp,instagram,messenger,tiktok}
       AGENDA: ${AGENDA:-on}

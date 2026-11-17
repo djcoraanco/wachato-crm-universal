@@ -121,7 +121,7 @@ export function ConnectionsClient() {
     {
       key: "ig",
       name: "Instagram",
-      identifier: "@wachato.crm",
+      identifier: "@crm.oficial",
       detail: "DMs, comentarios y respuestas a historias",
       badgeColor: "bg-[#EA4F86]/15 text-[#EA4F86]",
       href: "/settings/instagram",
@@ -129,7 +129,7 @@ export function ConnectionsClient() {
     {
       key: "fb",
       name: "Facebook Messenger",
-      identifier: "Página Oficial Wachato",
+      identifier: "Página Oficial CRM",
       detail: "Mensajes de la página y de anuncios de Meta",
       badgeColor: "bg-[#5B97F7]/15 text-[#5B97F7]",
       href: "/settings/messenger",
@@ -137,7 +137,7 @@ export function ConnectionsClient() {
     {
       key: "tt",
       name: "TikTok",
-      identifier: "@wachato.crm",
+      identifier: "@crm.oficial",
       detail: "Mensajes directos comerciales (Zernio)",
       badgeColor: "bg-panel2 text-fg border border-line",
       href: "/settings/tiktok",
@@ -145,7 +145,7 @@ export function ConnectionsClient() {
     {
       key: "cal",
       name: "Google Calendar & Agenda",
-      identifier: "contacto@wachato.com",
+      identifier: "contacto@crm.com",
       detail: "La IA sincroniza y solo ofrece horas libres del calendario",
       badgeColor: "bg-accent/15 text-accent",
       href: "/settings/calendar",
@@ -279,7 +279,7 @@ export function ConnectionsClient() {
             </div>
           </div>
           <div className="mt-4 rounded-lg bg-panel2 p-3 text-xs leading-relaxed text-muted">
-            <span className="font-semibold text-fg">Ventana de 24 h:</span> Wachato bloquea los
+            <span className="font-semibold text-fg">Ventana de 24 h:</span> El sistema bloquea los
             mensajes de texto libre fuera de la ventana de 24 horas y ofrece automáticamente solo
             plantillas aprobadas para evitar sanciones de Meta.
           </div>

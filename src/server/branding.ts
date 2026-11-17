@@ -50,12 +50,14 @@ export async function getBrandingContext(
         })
         .from(schema.organization)
         .limit(1);
-  if (!rows[0]) return { organizationId: null, branding: DEFAULT_BRANDING };
+  if (!rows[0]) return { organizationId: null, branding: { ...DEFAULT_BRANDING, name: "CRM" } };
 
   const meta = parseMetadata(rows[0].metadata);
-  const baseBranding = normalizeBranding(
-    (meta.branding as Partial<Branding> | undefined) ?? null
-  );
+  const rawBranding = meta.branding as Partial<Branding> | undefined;
+  const baseBranding = normalizeBranding(rawBranding ?? null);
+  if (!rawBranding?.name || baseBranding.name === "Vocero") {
+    baseBranding.name = "CRM";
+  }
 
   // Si la organización pertenece a una agencia y no tiene nombre personalizado, heredar de la agencia
   if (rows[0].agencyId) {

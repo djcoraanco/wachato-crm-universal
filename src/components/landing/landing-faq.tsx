@@ -27,7 +27,7 @@ export function LandingFaq({ faq, primaryColor: _primaryColor = "#00C4C0" }: Lan
             Preguntas Frecuentes
           </h2>
           <p className="mt-4 text-base text-slate-400">
-            Todo lo que necesitas saber antes de empezar a usar Wachato CRM.
+            Todo lo que necesitas saber antes de empezar a usar la plataforma.
           </p>
         </div>
 
@@ -75,10 +75,10 @@ export function LandingFaq({ faq, primaryColor: _primaryColor = "#00C4C0" }: Lan
           <p className="text-sm text-slate-400">
             ¿Tienes alguna pregunta adicional que no esté aquí?{" "}
             <a
-              href="mailto:soporte@wachato.com"
+              href="mailto:soporte@crm.com"
               className="font-semibold text-cyan-400 hover:underline"
             >
-              Escríbenos a soporte@wachato.com
+              Escríbenos a soporte@crm.com
             </a>{" "}
             y te responderemos de inmediato.
           </p>

@@ -149,7 +149,7 @@ export function LandingHero({
                   <div className="rounded-2xl rounded-tr-sm bg-cyan-950 border border-cyan-700/60 text-cyan-100 px-3.5 py-2 text-xs max-w-[85%] shadow-sm">
                     <div className="flex items-center gap-1.5 text-[10px] text-cyan-400 font-semibold mb-1">
                       <Bot className="w-3 h-3" />
-                      <span>Agente IA Vocero</span>
+                      <span>Agente de IA</span>
                     </div>
                     ¡Hola Carlos! Con gusto. Para el jueves tenemos disponibilidad a las 3:30 PM o a las 5:00 PM con la Dra. Sofía. ¿Cuál horario prefieres para confirmar tu reserva?
                   </div>

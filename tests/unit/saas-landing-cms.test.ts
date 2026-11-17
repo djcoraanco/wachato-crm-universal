@@ -44,7 +44,7 @@ describe("SaaS Fase 3: Landing Page Pública & CMS Visual", () => {
 
     // Theme & SEO
     expect(DEFAULT_LANDING_CONTENT.theme.primaryColor).toMatch(/^#[0-9a-fA-F]{6}$/);
-    expect(DEFAULT_LANDING_CONTENT.seo.metaTitle).toContain("Wachato");
+    expect(DEFAULT_LANDING_CONTENT.seo.metaTitle).toContain("CRM");
     expect(DEFAULT_LANDING_CONTENT.seo.metaDescription).toBeTruthy();
   });
 

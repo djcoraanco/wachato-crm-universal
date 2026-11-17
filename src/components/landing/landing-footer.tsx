@@ -5,9 +5,10 @@ import { Bot } from "lucide-react";
 
 interface LandingFooterProps {
   primaryColor?: string;
+  brandName?: string;
 }
 
-export function LandingFooter({ primaryColor = "#00C4C0" }: LandingFooterProps) {
+export function LandingFooter({ primaryColor = "#00C4C0", brandName = "CRM" }: LandingFooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
@@ -26,7 +27,7 @@ export function LandingFooter({ primaryColor = "#00C4C0" }: LandingFooterProps) 
                 <Bot className="w-4 h-4 text-slate-950" />
               </div>
               <span className="text-lg font-bold text-white tracking-tight">
-                Wachato <span style={{ color: primaryColor }}>CRM</span>
+                {brandName}
               </span>
             </Link>
             <p className="text-xs text-slate-400 leading-relaxed">
@@ -106,7 +107,7 @@ export function LandingFooter({ primaryColor = "#00C4C0" }: LandingFooterProps) 
               </li>
               <li>
                 <a
-                  href="mailto:soporte@wachato.com"
+                  href="mailto:soporte@crm.com"
                   className="hover:text-white transition-colors"
                 >
                   Soporte Técnico
@@ -119,7 +120,7 @@ export function LandingFooter({ primaryColor = "#00C4C0" }: LandingFooterProps) 
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div>
-            © {currentYear} Wachato CRM Universal. Todos los derechos reservados.
+            © {currentYear} {brandName}. Todos los derechos reservados.
           </div>
           <div className="flex items-center gap-4">
             <span>Privacidad de Datos</span>

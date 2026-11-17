@@ -21,7 +21,7 @@ export function WachatoTopbar({
     if (path.startsWith("/results") || path.startsWith("/analytics")) return "Estadísticas";
     if (path.startsWith("/settings")) return "Conexiones y Meta";
     if (path.startsWith("/onboarding")) return "Guía de inicio";
-    return "Wachato CRM";
+    return "CRM";
   };
 
   const hoy = new Intl.DateTimeFormat("es-ES", {
@@ -45,9 +45,6 @@ export function WachatoTopbar({
       <h1 className="font-display font-black text-[20px] text-fg tracking-[-0.01em]">
         {getTitle(pathname)}
       </h1>
-      <span className="demo text-xs text-warn border border-warn rounded-full px-2.5 py-0.5 font-semibold">
-        Prototipo · datos de ejemplo
-      </span>
       <div className="flex-1" />
       <span className="text-muted text-[13px] font-medium hidden sm:inline-block">
         {fechaCapitalizada}

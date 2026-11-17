@@ -221,7 +221,7 @@ export function ClinicasModuleView() {
                 Aislamiento Estricto de Privacidad Médica (HIPAA / Cumplimiento Sanitario)
               </h3>
               <p className="text-xs text-muted mt-1 leading-relaxed">
-                Por directiva constitucional de Wachato, el agente de IA <b>NUNCA</b> tiene acceso de lectura ni escritura a diagnósticos, recetas ni antecedentes médicos. El bot únicamente coordina disponibilidad horaria y confirmación de citas administrativas.
+                Por directiva constitucional de privacidad, el agente de IA <b>NUNCA</b> tiene acceso de lectura ni escritura a diagnósticos, recetas ni antecedentes médicos. El bot únicamente coordina disponibilidad horaria y confirmación de citas administrativas.
               </p>
             </div>
           </div>

@@ -115,7 +115,7 @@ export function ContactsClient() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => exportContactsToExcel(filteredContacts, "Wachato CRM")}
+            onClick={() => exportContactsToExcel(filteredContacts, "CRM")}
             title="Descargar lista filtrada en Excel"
           >
             <FileSpreadsheet className="mr-1.5 h-4 w-4 text-ok" />
@@ -124,7 +124,7 @@ export function ContactsClient() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => exportContactsToPdf(filteredContacts, "Wachato CRM")}
+            onClick={() => exportContactsToPdf(filteredContacts, "CRM")}
             title="Descargar lista filtrada en PDF horizontal"
           >
             <FileText className="mr-1.5 h-4 w-4 text-accent" />

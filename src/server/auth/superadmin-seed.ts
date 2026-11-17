@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "better-auth/crypto";
 import { getDb, schema } from "@/lib/db";
@@ -19,8 +21,46 @@ export type SuperAdminSeedResult = {
 };
 
 /**
+ * Lee una variable de entorno de process.env o como fallback directamente
+ * de los archivos .env en el disco (/app/.env, ./.env, /data/.env).
+ */
+function getEnvConfig(key: string): string | undefined {
+  const runtimeVal = process.env[key];
+  if (runtimeVal && runtimeVal.trim().length > 0) {
+    return runtimeVal.trim();
+  }
+
+  const candidatePaths = [
+    path.resolve(process.cwd(), ".env"),
+    "/app/.env",
+    "/data/.env",
+  ];
+
+  for (const envPath of candidatePaths) {
+    try {
+      if (fs.existsSync(envPath)) {
+        const raw = fs.readFileSync(envPath, "utf-8");
+        for (const line of raw.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+          const [k, ...v] = trimmed.split("=");
+          if (k?.trim() === key) {
+            const val = v.join("=").trim().replace(/^["']|["']$/g, "");
+            if (val.length > 0) return val;
+          }
+        }
+      }
+    } catch {
+      // Ignorar errores de acceso al archivo
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * Asegura la existencia de al menos un usuario SuperAdmin en el sistema.
- * Idempotente: Si ya existe un superadmin, no realiza ninguna acción.
+ * Idempotente: Si ya existe un superadmin, sincroniza sus credenciales.
  * Si no existe, lo crea con credenciales seguras definidas en .env o por defecto.
  */
 export async function ensureDefaultSuperAdmin(opts?: {
@@ -30,17 +70,17 @@ export async function ensureDefaultSuperAdmin(opts?: {
 }): Promise<SuperAdminSeedResult> {
   const db = getDb();
 
-  // 1. Parámetros del SuperAdmin
+  // 1. Parámetros del SuperAdmin (prioridad: opts -> env -> default neutral)
   const email = (
     opts?.email ||
-    process.env.SUPERADMIN_EMAIL ||
-    "admin@wachato.com"
+    getEnvConfig("SUPERADMIN_EMAIL") ||
+    "admin@crm.com"
   ).trim().toLowerCase();
 
   const password =
-    opts?.password || process.env.SUPERADMIN_PASSWORD || "AdminVocero2026!";
+    opts?.password || getEnvConfig("SUPERADMIN_PASSWORD") || "Admin123456!";
 
-  const name = (opts?.name || process.env.SUPERADMIN_NAME || "Super Admin").trim();
+  const name = (opts?.name || getEnvConfig("SUPERADMIN_NAME") || "Super Admin").trim();
 
   if (password.length < 8) {
     throw new Error("La contraseña del SuperAdmin debe tener al menos 8 caracteres");
@@ -48,7 +88,16 @@ export async function ensureDefaultSuperAdmin(opts?: {
 
   const hashedPassword = await hashPassword(password);
 
-  // 2. Verificar si el usuario ya existe por email (ej. creado vía web o en seed anterior)
+  function logBanner(mode: "verificado" | "migrado" | "creado") {
+    console.log("\n========================================================================");
+    console.log(`[superadmin] 🔑 ACCESO SUPERADMIN (${mode.toUpperCase()}):`);
+    console.log(`[superadmin] 📧 Correo:     ${email}`);
+    console.log(`[superadmin] 🔒 Contraseña: ${password}`);
+    console.log(`[superadmin] 🌐 Rol:        SuperAdmin (Acceso Total y Configuración)`);
+    console.log("========================================================================\n");
+  }
+
+  // 2. Verificar si el usuario ya existe por email
   const existingUser = await db
     .select({ id: schema.user.id, email: schema.user.email, platformRole: schema.user.platformRole })
     .from(schema.user)
@@ -68,7 +117,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
       .set({ password: hashedPassword, updatedAt: new Date() })
       .where(eq(schema.account.userId, u.id));
 
-    console.log(`[superadmin] ✅ SuperAdmin verificado y sincronizado: ${email}`);
+    logBanner("verificado");
     return {
       created: false,
       email,
@@ -76,50 +125,48 @@ export async function ensureDefaultSuperAdmin(opts?: {
     };
   }
 
-  // 3. Si se configuró un email personalizado pero existe el placeholder "admin@wachato.com", migrarlo
-  if (email !== "admin@wachato.com") {
-    const placeholderUser = await db
-      .select({ id: schema.user.id, email: schema.user.email })
-      .from(schema.user)
-      .where(eq(schema.user.email, "admin@wachato.com"))
-      .limit(1);
+  // 3. Si existe el usuario de instalaciones previas "admin@wachato.com", migrarlo al nuevo correo
+  const oldWachatoUser = await db
+    .select({ id: schema.user.id, email: schema.user.email })
+    .from(schema.user)
+    .where(eq(schema.user.email, "admin@wachato.com"))
+    .limit(1);
 
-    if (placeholderUser[0]) {
-      const p = placeholderUser[0];
-      await db
-        .update(schema.user)
-        .set({ email, name, platformRole: "superadmin", updatedAt: new Date() })
-        .where(eq(schema.user.id, p.id));
+  if (oldWachatoUser[0] && email !== "admin@wachato.com") {
+    const p = oldWachatoUser[0];
+    await db
+      .update(schema.user)
+      .set({ email, name, platformRole: "superadmin", updatedAt: new Date() })
+      .where(eq(schema.user.id, p.id));
 
-      await db
-        .update(schema.account)
-        .set({ password: hashedPassword, updatedAt: new Date() })
-        .where(eq(schema.account.userId, p.id));
+    await db
+      .update(schema.account)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(schema.account.userId, p.id));
 
-      console.log(`[superadmin] ✅ SuperAdmin migrado de admin@wachato.com a: ${email}`);
-      return {
-        created: true,
-        email,
-        message: `SuperAdmin migrado de admin@wachato.com a ${email}`,
-      };
-    }
+    logBanner("migrado");
+    return {
+      created: true,
+      email,
+      message: `SuperAdmin migrado de admin@wachato.com a ${email}`,
+    };
   }
 
-  // 4. Si ya existe otro SuperAdmin y no se especificó un email personalizado
-  if (!opts?.email && !process.env.SUPERADMIN_EMAIL) {
-    const otherSuperAdmin = await db
-      .select({ id: schema.user.id, email: schema.user.email })
-      .from(schema.user)
-      .where(eq(schema.user.platformRole, "superadmin"))
-      .limit(1);
+  // 4. Si ya existe cualquier usuario en la base de datos (por ejemplo, creado en /register inicial),
+  // promover al primer usuario a SuperAdmin y sincronizarle contraseña para que nunca quede bloqueado
+  const anyFirstUser = await db
+    .select({ id: schema.user.id, email: schema.user.email, platformRole: schema.user.platformRole })
+    .from(schema.user)
+    .limit(1);
 
-    if (otherSuperAdmin[0]) {
-      return {
-        created: false,
-        email: otherSuperAdmin[0].email,
-        message: "Ya existe un usuario con rol SuperAdmin en el sistema",
-      };
-    }
+  if (anyFirstUser[0] && !getEnvConfig("SUPERADMIN_EMAIL")) {
+    const u = anyFirstUser[0];
+    await db
+      .update(schema.user)
+      .set({ platformRole: "superadmin", updatedAt: new Date() })
+      .where(eq(schema.user.id, u.id));
+
+    console.log(`[superadmin] 🛡️ Usuario existente promovido a SuperAdmin: ${u.email}`);
   }
 
   // 5. Crear nuevo usuario SuperAdmin desde cero
@@ -148,7 +195,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
     const orgId = newId("organization");
     await tx.insert(schema.organization).values({
       id: orgId,
-      name: "Wachato Central Platform",
+      name: "Plataforma Central",
       slug: "master",
     });
 
@@ -186,7 +233,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
       const now = new Date();
       const nextYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
       await upsertSubscription({
-        organizationId: userId, // o la master org
+        organizationId: userId,
         planId: plan.id,
         provider: "stripe",
         providerSubscriptionId: `admin_master_sub`,
@@ -201,7 +248,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
     console.warn("[superadmin] Advertencia al vincular plan master:", subErr);
   }
 
-  console.log(`[superadmin] ✅ SuperAdmin creado con éxito: ${email}`);
+  logBanner("creado");
 
   return {
     created: true,

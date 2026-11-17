@@ -4,7 +4,7 @@ import { newId } from "@/lib/db/ids";
 import type { InstalledModuleDto, ModuleManifest } from "./types";
 
 /**
- * Catálogo maestro de Hard Modules precompilados en Wachato CRM Universal.
+ * Catálogo maestro de Hard Modules precompilados en CRM Universal.
  */
 export const OFFICIAL_MODULES: ModuleManifest[] = [
   {
@@ -13,7 +13,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "restaurantes",
     version: "1.0.0",
     description: "Toma de pedidos por WhatsApp, reserva de mesas en tiempo real, menú digital con alérgenos y cálculo de propinas.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "UtensilsCrossed",
     official: true,
     navigationItems: [
@@ -58,7 +58,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "clinicas",
     version: "1.0.0",
     description: "Agendamiento con especialistas, triaje preliminar no diagnóstico, confirmación de seguro médico y recordatorios de consulta.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "HeartPulse",
     official: true,
     navigationItems: [
@@ -103,7 +103,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "ecommerce",
     version: "1.0.0",
     description: "Catálogo de productos interactivo, generación de carritos, seguimiento de envíos y cálculo automático de flete.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "ShoppingBag",
     official: true,
     navigationItems: [
@@ -140,7 +140,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "inmobiliarias",
     version: "1.0.0",
     description: "Filtrado de propiedades por zona y presupuesto, agendamiento de visitas presenciales y cálculo de cuotas hipotecarias.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "Building2",
     official: true,
     navigationItems: [
@@ -178,7 +178,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "marketing",
     version: "1.0.0",
     description: "Calificación automatizada B2B (BANT), atribución de anuncios de Meta y Google, y reporte directo a la Conversions API.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "Megaphone",
     official: true,
     navigationItems: [
@@ -207,7 +207,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "servicios",
     version: "1.0.0",
     description: "Propuestas de honorarios, horas de asesoría legal/contable, contratos y acuerdos de confidencialidad.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "Briefcase",
     official: true,
     navigationItems: [
@@ -232,7 +232,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "educacion",
     version: "1.0.0",
     description: "Admisiones, folletos de cursos y carreras, recordatorios de inicio de clases y resolución de dudas curriculares.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "GraduationCap",
     official: true,
     navigationItems: [
@@ -253,7 +253,7 @@ export const OFFICIAL_MODULES: ModuleManifest[] = [
     category: "logistica",
     version: "1.0.0",
     description: "Seguimiento satelital de guías, cálculo de peso volumétrico y confirmación de recepción con firma digital.",
-    author: "Wachato Core Team",
+    author: "CRM Core Team",
     icon: "Truck",
     official: true,
     navigationItems: [

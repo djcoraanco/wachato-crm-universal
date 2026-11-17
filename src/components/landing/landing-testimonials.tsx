@@ -24,7 +24,7 @@ export function LandingTestimonials({
           </h2>
           <p className="mt-4 text-base sm:text-lg text-slate-400">
             Descubre cómo dueños de negocios, directores comerciales y agencias multiplican su
-            conversión con Wachato CRM.
+            conversión con nuestro CRM.
           </p>
         </div>
 

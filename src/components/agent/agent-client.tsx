@@ -296,12 +296,12 @@ export function AgentClient() {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          "x-wachato-secret": profile.externalSecret || "wachato-test",
+          "x-agent-secret": profile.externalSecret || "test-secret",
         },
         body: JSON.stringify({
           tipo: "ping",
           timestamp: new Date().toISOString(),
-          mensaje: "Prueba de conectividad desde Wachato CRM Universal",
+          mensaje: "Prueba de conectividad desde el CRM",
         }),
       });
       if (res.ok) {
@@ -385,7 +385,7 @@ export function AgentClient() {
             {[
               {
                 id: "wachato" as Mode,
-                title: "Agente Wachato",
+                title: "Agente IA Nativo",
                 desc: "Aprende de lo que cargas en «Entrenar IA». Listo para usar.",
               },
               {
@@ -396,7 +396,7 @@ export function AgentClient() {
               {
                 id: "mixto" as Mode,
                 title: "Mixto",
-                desc: "El agente externo responde y Wachato toma el control si falla o tarda más de 10 s.",
+                desc: "El agente externo responde y el CRM toma el control si falla o tarda más de 10 s.",
               },
             ].map((opt) => {
               const active = profile.mode === opt.id;
@@ -583,7 +583,7 @@ export function AgentClient() {
             </div>
 
             <p className="text-[11px] text-muted border-t border-line/60 pt-3">
-              En Wachato la clave se almacena cifrada en reposo con AES-256-GCM y nunca se expone en logs ni en la UI.
+              La clave se almacena cifrada en reposo con AES-256-GCM y nunca se expone en logs ni en la UI.
             </p>
           </div>
         )}
@@ -687,7 +687,7 @@ export function AgentClient() {
               Agente externo
             </h2>
             <p className="text-xs text-muted leading-relaxed">
-              Wachato despachará cada turno de conversación al webhook indicado. Si elegiste modo Mixto, Wachato responderá automáticamente si el webhook no responde en 10 segundos.
+              El CRM despachará cada turno de conversación al webhook indicado. Si elegiste modo Mixto, el CRM responderá automáticamente si el webhook no responde en 10 segundos.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -699,7 +699,7 @@ export function AgentClient() {
                   type="url"
                   id="hookUrl"
                   value={profile.externalWebhookUrl ?? ""}
-                  placeholder="https://tu-servidor.com/webhook/wachato"
+                  placeholder="https://tu-servidor.com/webhook/crm"
                   onChange={(e) =>
                     setProfile({ ...profile, externalWebhookUrl: e.target.value })
                   }
@@ -714,7 +714,7 @@ export function AgentClient() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-fg" htmlFor="hookKey">
-                  Clave secreta (Header x-wachato-secret)
+                  Clave secreta (Header x-agent-secret)
                 </label>
                 <input
                   type="password"
@@ -737,7 +737,7 @@ export function AgentClient() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-fg">
-                  Wachato envía cada mensaje así
+                  El CRM envía cada mensaje así
                 </span>
                 <button
                   type="button"
@@ -764,7 +764,7 @@ export function AgentClient() {
                 <code className="text-accent bg-panel2 px-1 rounded">
                   {'{"respuesta": "...", "mover_a": "cita"}'}
                 </code>{" "}
-                y Wachato lo publica en el canal correspondiente.
+                y el CRM lo publica en el canal correspondiente.
               </p>
             </div>
 

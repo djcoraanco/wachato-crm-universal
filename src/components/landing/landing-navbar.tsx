@@ -6,9 +6,10 @@ import { Bot, Menu, X, ArrowRight } from "lucide-react";
 
 interface LandingNavbarProps {
   primaryColor?: string;
+  brandName?: string;
 }
 
-export function LandingNavbar({ primaryColor = "#00C4C0" }: LandingNavbarProps) {
+export function LandingNavbar({ primaryColor = "#00C4C0", brandName = "CRM" }: LandingNavbarProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -27,7 +28,7 @@ export function LandingNavbar({ primaryColor = "#00C4C0" }: LandingNavbarProps) 
           </div>
           <div className="flex flex-col">
             <span className="text-lg font-bold tracking-tight text-white flex items-center gap-1">
-              Wachato <span style={{ color: primaryColor }}>CRM</span>
+              {brandName}
             </span>
           </div>
         </Link>
