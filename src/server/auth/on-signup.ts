@@ -1,4 +1,4 @@
-import { count, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { newId } from "@/lib/db/ids";
 
@@ -66,9 +66,52 @@ export async function resolveActiveOrganizationId(
 }
 
 export async function resolveMembership(
-  userId: string
+  userId: string,
+  preferredOrgId?: string | null
 ): Promise<{ organizationId: string; role: string } | null> {
   const db = getDb();
+
+  // Si se solicita una organización preferida (switch de contexto de agencia)
+  if (preferredOrgId) {
+    // 1. Membresía directa en esa organización
+    const direct = await db
+      .select({
+        organizationId: schema.member.organizationId,
+        role: schema.member.role,
+      })
+      .from(schema.member)
+      .where(
+        and(
+          eq(schema.member.userId, userId),
+          eq(schema.member.organizationId, preferredOrgId)
+        )
+      )
+      .limit(1);
+
+    if (direct[0]) return direct[0];
+
+    // 2. O si es cliente de una agencia donde el usuario es miembro
+    const agencyMember = await db
+      .select({ role: schema.agencyMember.role })
+      .from(schema.agencyMember)
+      .innerJoin(
+        schema.organization,
+        eq(schema.organization.agencyId, schema.agencyMember.agencyId)
+      )
+      .where(
+        and(
+          eq(schema.agencyMember.userId, userId),
+          eq(schema.organization.id, preferredOrgId)
+        )
+      )
+      .limit(1);
+
+    if (agencyMember[0]) {
+      return { organizationId: preferredOrgId, role: "owner" };
+    }
+  }
+
+  // Fallback: primera membresía del usuario
   const rows = await db
     .select({
       organizationId: schema.member.organizationId,

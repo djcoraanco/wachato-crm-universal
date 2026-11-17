@@ -200,3 +200,89 @@ export async function listAgencyMembers(agencyId: string) {
     .innerJoin(schema.user, eq(schema.agencyMember.userId, schema.user.id))
     .where(eq(schema.agencyMember.agencyId, agencyId));
 }
+
+/**
+ * Obtiene la agencia a la que pertenece un usuario (como owner o member).
+ */
+export async function getUserAgency(userId: string): Promise<(AgencyRecord & { memberRole: AgencyMemberRole }) | null> {
+  const db = getDb();
+  const rows = await db
+    .select({
+      agency: schema.agency,
+      role: schema.agencyMember.role,
+    })
+    .from(schema.agencyMember)
+    .innerJoin(schema.agency, eq(schema.agencyMember.agencyId, schema.agency.id))
+    .where(eq(schema.agencyMember.userId, userId))
+    .limit(1);
+
+  if (!rows[0]) return null;
+  return {
+    ...rows[0].agency,
+    memberRole: rows[0].role as AgencyMemberRole,
+  };
+}
+
+const SEED_STAGES: { name: string; kind: "open" | "won" | "lost" }[] = [
+  { name: "Nuevo", kind: "open" },
+  { name: "En conversación", kind: "open" },
+  { name: "Interesado", kind: "open" },
+  { name: "Cliente", kind: "won" },
+  { name: "Perdido", kind: "lost" },
+];
+
+/**
+ * Crea una nueva subcuenta cliente aprovisionada para la agencia.
+ */
+export async function createAgencyClientOrganization(params: {
+  agencyId: string;
+  name: string;
+  slug?: string;
+  ownerUserId: string;
+  customDomain?: string;
+}) {
+  const db = getDb();
+  const orgId = newId("organization");
+  const slug = params.slug
+    ? params.slug.toLowerCase().trim()
+    : `client-${Date.now().toString(36)}`;
+
+  await db.transaction(async (tx) => {
+    // 1. Crear organización de cliente vinculada a la agencia
+    await tx.insert(schema.organization).values({
+      id: orgId,
+      name: params.name,
+      slug,
+      agencyId: params.agencyId,
+      isAgencyClient: true,
+      customDomain: params.customDomain ? params.customDomain.toLowerCase().trim() : null,
+    });
+
+    // 2. Asociar al dueño de la agencia como owner de la subcuenta
+    await tx.insert(schema.member).values({
+      id: newId("member"),
+      organizationId: orgId,
+      userId: params.ownerUserId,
+      role: "owner",
+    });
+
+    // 3. Sembrar etapas del pipeline
+    await tx.insert(schema.pipelineStage).values(
+      SEED_STAGES.map((s, i) => ({
+        id: newId("stage"),
+        organizationId: orgId,
+        name: s.name,
+        position: i,
+        kind: s.kind,
+      }))
+    );
+
+    // 4. Sembrar perfil de agente
+    await tx.insert(schema.agentProfile).values({
+      id: newId("agentProfile"),
+      organizationId: orgId,
+    });
+  });
+
+  return { id: orgId, name: params.name, slug, agencyId: params.agencyId };
+}

@@ -1,4 +1,4 @@
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getAuth } from "@/lib/auth";
 import { resolveMembership } from "@/server/auth/on-signup";
 
@@ -17,15 +17,19 @@ export class UnauthorizedError extends Error {
 
 /**
  * Sesión + organización activa para route handlers y server components.
- * Lanza UnauthorizedError si no hay sesión u organización.
+ * Soporta cambio dinámico de organización activa para agencias mediante cookie o header.
  */
 export async function requireSession(): Promise<SessionContext> {
   const auth = getAuth();
-  const session = await auth.api.getSession({ headers: await headers() });
+  const reqHeaders = await headers();
+  const session = await auth.api.getSession({ headers: reqHeaders });
   if (!session) throw new UnauthorizedError();
-  // La sesión puede crearse antes de que la membresía exista (registro
-  // inicial) — la membresía en BD es la fuente de verdad de org + rol.
-  const membership = await resolveMembership(session.user.id);
+
+  const cookieStore = await cookies().catch(() => null);
+  const preferredOrgId =
+    cookieStore?.get("active_org_id")?.value || reqHeaders.get("x-organization-id");
+
+  const membership = await resolveMembership(session.user.id, preferredOrgId);
   if (!membership) {
     throw new UnauthorizedError("Sesión sin organización activa");
   }

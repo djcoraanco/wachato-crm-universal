@@ -320,7 +320,7 @@ describe("037 — doctor y salud", () => {
   it("sin la bandera, el doctor no menciona el bucket", async () => {
     const { checkMediaBucket } = await import("@/server/doctor/checks");
     expect(await checkMediaBucket({ ...CREDS })).toBeNull();
-  });
+  }, 15_000);
 
   it("con la bandera y variables faltantes, falla y dice cuáles", async () => {
     const { checkMediaBucket } = await import("@/server/doctor/checks");

@@ -8,6 +8,7 @@ import {
   Bell,
   BellOff,
   Blocks,
+  Building2,
   CalendarDays,
   ChartColumn,
   FlaskConical,
@@ -216,6 +217,7 @@ export function AppNav({
   mainNavItems.push({ href: "/calendar", label: "Calendario", icon: CalendarDays });
   mainNavItems.push({ href: "/results", label: "Estadísticas", icon: ChartColumn });
   mainNavItems.push({ href: "/modules", label: "Módulos", icon: Blocks });
+  mainNavItems.push({ href: "/agency", label: "Agencia Partner", icon: Building2 });
   mainNavItems.push({ href: "/connections", label: "Conexiones y Meta", icon: Settings });
 
   if (role === "owner" || role === "admin") {

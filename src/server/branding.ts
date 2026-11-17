@@ -33,22 +33,54 @@ export async function getBrandingContext(
   const db = getDb();
   const rows = organizationId
     ? await db
-        .select({ id: schema.organization.id, metadata: schema.organization.metadata })
+        .select({
+          id: schema.organization.id,
+          metadata: schema.organization.metadata,
+          agencyId: schema.organization.agencyId,
+        })
         .from(schema.organization)
         .where(eq(schema.organization.id, organizationId))
         .limit(1)
-    : // Sin sesión (login, layout raíz): la única organización de la instancia.
+    : // Sin sesión (login, layout raíz): la primera organización de la instancia.
       await db
-        .select({ id: schema.organization.id, metadata: schema.organization.metadata })
+        .select({
+          id: schema.organization.id,
+          metadata: schema.organization.metadata,
+          agencyId: schema.organization.agencyId,
+        })
         .from(schema.organization)
         .limit(1);
   if (!rows[0]) return { organizationId: null, branding: DEFAULT_BRANDING };
+
   const meta = parseMetadata(rows[0].metadata);
+  const baseBranding = normalizeBranding(
+    (meta.branding as Partial<Branding> | undefined) ?? null
+  );
+
+  // Si la organización pertenece a una agencia y no tiene nombre personalizado, heredar de la agencia
+  if (rows[0].agencyId) {
+    const agencyRows = await db
+      .select({ branding: schema.agency.branding, name: schema.agency.name })
+      .from(schema.agency)
+      .where(eq(schema.agency.id, rows[0].agencyId))
+      .limit(1);
+
+    const agency = agencyRows[0];
+    if (agency?.branding) {
+      return {
+        organizationId: rows[0].id,
+        branding: {
+          ...baseBranding,
+          name: meta.branding ? baseBranding.name : (agency.branding.brandName || agency.name),
+          accent: agency.branding.primaryColor || baseBranding.accent,
+        },
+      };
+    }
+  }
+
   return {
     organizationId: rows[0].id,
-    branding: normalizeBranding(
-      (meta.branding as Partial<Branding> | undefined) ?? null
-    ),
+    branding: baseBranding,
   };
 }
 
