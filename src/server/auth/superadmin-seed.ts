@@ -70,16 +70,54 @@ async function upsertCredential(userId: string, hashedPassword: string) {
     .where(eq(schema.account.userId, userId));
 }
 
+async function ensureMasterSubscription(orgId: string, userId?: string) {
+  const db = getDb();
+  try {
+    const plan =
+      (await getPlanBySlug("agency-scale")) ||
+      (await getPlanBySlug("business")) ||
+      (await getPlanBySlug("pro"));
+    if (!plan) return;
+
+    // Si había una suscripción errónea con organizationId = userId, migrarla al orgId real
+    if (userId) {
+      await db
+        .update(schema.subscription)
+        .set({ organizationId: orgId, planId: plan.id, status: "active" })
+        .where(eq(schema.subscription.organizationId, userId));
+    }
+
+    const now = new Date();
+    const nextYears = new Date(now.getTime() + 10 * 365 * 24 * 60 * 60 * 1000); // 10 años
+    await upsertSubscription({
+      organizationId: orgId,
+      planId: plan.id,
+      provider: "manual",
+      providerSubscriptionId: `admin_master_sub_${orgId}`,
+      status: "active",
+      billingInterval: "yearly",
+      currentPeriodStart: now,
+      currentPeriodEnd: nextYears,
+      metadata: { isMasterAdmin: true },
+    });
+  } catch (err) {
+    console.warn("[superadmin] Advertencia al sincronizar suscripción master:", err);
+  }
+}
+
 async function ensureMembership(userId: string) {
   const db = getDb();
   try {
     const existingMember = await db
-      .select({ id: schema.member.id })
+      .select({ organizationId: schema.member.organizationId })
       .from(schema.member)
       .where(eq(schema.member.userId, userId))
       .limit(1);
 
-    if (existingMember[0]) return;
+    if (existingMember[0]?.organizationId) {
+      await ensureMasterSubscription(existingMember[0].organizationId, userId);
+      return;
+    }
 
     const orgs = await db
       .select({ id: schema.organization.id })
@@ -93,6 +131,7 @@ async function ensureMembership(userId: string) {
         userId,
         role: "owner",
       });
+      await ensureMasterSubscription(orgs[0].id, userId);
     }
   } catch {
     // Ignorar si el mock o la tabla no están disponibles
@@ -218,6 +257,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
 
   // 5. Crear nuevo usuario SuperAdmin desde cero
   const userId = newId("user");
+  const masterOrgId = newId("organization");
 
   await db.transaction(async (tx) => {
     // A) Insertar usuario
@@ -239,9 +279,8 @@ export async function ensureDefaultSuperAdmin(opts?: {
     });
 
     // C) Crear organización maestra
-    const orgId = newId("organization");
     await tx.insert(schema.organization).values({
-      id: orgId,
+      id: masterOrgId,
       name: "Plataforma Central",
       slug: "master",
     });
@@ -249,7 +288,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
     // D) Asignar rol owner en la organización
     await tx.insert(schema.member).values({
       id: newId("member"),
-      organizationId: orgId,
+      organizationId: masterOrgId,
       userId,
       role: "owner",
     });
@@ -258,7 +297,7 @@ export async function ensureDefaultSuperAdmin(opts?: {
     await tx.insert(schema.pipelineStage).values(
       SEED_STAGES.map((s, i) => ({
         id: newId("stage"),
-        organizationId: orgId,
+        organizationId: masterOrgId,
         name: s.name,
         position: i,
         kind: s.kind,
@@ -268,29 +307,13 @@ export async function ensureDefaultSuperAdmin(opts?: {
     // F) Perfil del agente
     await tx.insert(schema.agentProfile).values({
       id: newId("agentProfile"),
-      organizationId: orgId,
+      organizationId: masterOrgId,
     });
   });
 
   // G) Asignar plan Agency Scale (ilimitado) a la organización del SuperAdmin
   try {
-    const plan =
-      (await getPlanBySlug("agency-scale")) || (await getPlanBySlug("pro"));
-    if (plan) {
-      const now = new Date();
-      const nextYear = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
-      await upsertSubscription({
-        organizationId: userId,
-        planId: plan.id,
-        provider: "stripe",
-        providerSubscriptionId: `admin_master_sub`,
-        status: "active",
-        billingInterval: "yearly",
-        currentPeriodStart: now,
-        currentPeriodEnd: nextYear,
-        metadata: { isMasterAdmin: true },
-      });
-    }
+    await ensureMasterSubscription(masterOrgId, userId);
   } catch (subErr) {
     console.warn("[superadmin] Advertencia al vincular plan master:", subErr);
   }

@@ -190,6 +190,27 @@ export async function getEffectivePlan(organizationId: string): Promise<{
     }
   }
 
+  // 2.5. Si no tiene suscripción ni agencia nodriza y en el sistema existe un superadmin,
+  // conceder límites ilimitados por defecto (modo self-hosted master)
+  const anySuper = await db
+    .select({ id: schema.user.id })
+    .from(schema.user)
+    .where(eq(schema.user.platformRole, "superadmin"))
+    .limit(1);
+
+  if (anySuper.length > 0 && !orgRow[0]?.agencyId) {
+    const topPlan =
+      (await getPlanBySlug("agency-scale")) ||
+      (await getPlanBySlug("business")) ||
+      (await getPlanBySlug("pro"));
+    return {
+      plan: topPlan,
+      limits: SUPERADMIN_UNLIMITED_LIMITS,
+      isCustom: true,
+      source: "organization",
+    };
+  }
+
   // 3. Fallback: plan starter por defecto
   const starterDef = DEFAULT_PLANS.find((p) => p.slug === "starter")!;
   const starterDb = await getPlanBySlug("starter");

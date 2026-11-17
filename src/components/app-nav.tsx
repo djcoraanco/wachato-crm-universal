@@ -68,7 +68,7 @@ export function navItemClass(active: boolean) {
     "flex items-center justify-between gap-2 px-3 py-2.5 rounded-[9px] font-semibold text-[14px] transition-colors whitespace-nowrap",
     active
       ? "bg-accent-soft text-accent"
-      : "text-text-2 hover:bg-panel2 hover:text-foreground font-medium"
+      : "text-foreground font-medium hover:bg-panel2 hover:text-accent"
   );
 }
 
@@ -228,12 +228,8 @@ export function AppNav({
         { href: "/agent", label: "Agentes de IA", icon: Sparkles },
         { href: "/agent/training", label: "Entrenar IA", icon: Wand2 },
         { href: "/automations", label: "Automatizaciones", icon: Radio },
-        ...(role === "owner" || role === "admin" || role === "superadmin"
-          ? [
-              { href: "/lab", label: "Laboratorio", icon: FlaskConical },
-              { href: "/onboarding", label: "Guía de inicio", icon: ListChecks },
-            ]
-          : []),
+        { href: "/lab", label: "Laboratorio", icon: FlaskConical },
+        { href: "/onboarding", label: "Guía de inicio", icon: ListChecks },
       ],
     },
     {
@@ -242,9 +238,7 @@ export function AppNav({
         { href: "/modules", label: "Módulos", icon: Blocks },
         { href: "/agency", label: "Agencia Partner", icon: Building2 },
         { href: "/connections", label: "Conexiones y Meta", icon: Link2 },
-        ...(role === "owner" || role === "admin" || role === "superadmin"
-          ? [{ href: "/admin", label: "Super Admin", icon: ShieldAlert }]
-          : []),
+        { href: "/admin", label: "Super Admin", icon: ShieldAlert },
       ],
     },
     {
@@ -265,7 +259,7 @@ export function AppNav({
           "flex items-center justify-between gap-2 px-3 py-2 rounded-[9px] text-[13.5px] transition-colors whitespace-nowrap",
           active
             ? "bg-accent-soft text-accent font-semibold"
-            : "text-text-2 hover:bg-panel2 hover:text-foreground font-medium"
+            : "text-foreground font-medium hover:bg-panel2 hover:text-accent"
         )}
         aria-current={active ? "page" : undefined}
       >
@@ -303,7 +297,7 @@ export function AppNav({
         {navSections.map((sec, idx) => (
           <div key={sec.title ?? idx} className="space-y-0.5">
             {sec.title && (
-              <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-text-3">
+              <div className="px-3 pt-1.5 pb-1 text-[11px] font-bold uppercase tracking-wider text-foreground/75">
                 {sec.title}
               </div>
             )}
