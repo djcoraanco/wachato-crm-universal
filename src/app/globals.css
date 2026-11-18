@@ -146,7 +146,7 @@
     --panel2: #f3f8f9;
     --line: #d3e1e5;
     --fg: #0d1d25;
-    --muted: #587079;
+    --muted: #334155;
     --on-accent: #ffffff;
     --wachato-accent: #009c98;
     --wachato-accent-soft: rgba(0, 156, 152, 0.12);
@@ -268,7 +268,7 @@
     --panel2: #1a2e39;
     --line: #243c4a;
     --fg: #e6f0f2;
-    --muted: #8ba4ae;
+    --muted: #cbd5e1;
     --on-accent: #03201f;
     --wachato-accent: #00c4c0;
     --wachato-accent-soft: rgba(0, 196, 192, 0.14);
@@ -531,4 +531,17 @@
     zoom: var(--escala);
     height: calc(100dvh / var(--escala));
   }
+}
+
+/* Legibilidad y contraste de textos secundarios en toda la plataforma */
+.text-muted,
+[class*="text-muted"] {
+  color: var(--muted) !important;
+}
+
+/* Evitar textos atenuados ilegibles en subtítulos y etiquetas */
+p.text-muted,
+span.text-muted,
+div.text-muted {
+  color: var(--muted) !important;
 }

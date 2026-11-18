@@ -314,20 +314,20 @@ export function AppNav({
       <BotonInstalar className="px-3 py-1.5 text-xs text-muted hover:text-fg" />
 
       <div className="mt-auto pt-3">
-        <div className="biz p-3 border border-line rounded-xl grid gap-0.5 text-left bg-panel2/50">
-          <span className="label text-[11px] uppercase tracking-[0.08em] text-muted font-semibold">
+        <div className="biz p-3 border border-line rounded-xl grid gap-0.5 text-left bg-panel2/60">
+          <span className="label text-[11px] uppercase tracking-[0.08em] text-foreground/75 font-bold">
             Negocio
           </span>
           <b id="bizName" className="truncate text-fg text-[14px] font-bold">
             {branding.name}
           </b>
-          <span className="muted text-muted text-[12px] truncate">
+          <span className="muted text-foreground/80 text-[12px] font-medium truncate">
             {kicker}
           </span>
         </div>
 
-        <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-line/60 px-1 text-muted text-xs">
-          <span className="truncate max-w-[100px] font-medium" title={userName}>
+        <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-line/60 px-1 text-foreground/85 text-xs">
+          <span className="truncate max-w-[100px] font-semibold" title={userName}>
             {userName}
           </span>
           <div className="flex items-center gap-1">
@@ -338,7 +338,7 @@ export function AppNav({
               onClick={() => void salir()}
               title="Cerrar sesión"
               aria-label="Cerrar sesión"
-              className="p-1 hover:text-fg rounded transition-colors"
+              className="p-1 text-foreground/80 hover:text-fg rounded transition-colors"
             >
               <LogOut className="h-4 w-4" />
             </button>
@@ -346,7 +346,7 @@ export function AppNav({
         </div>
 
         <p
-          className="mt-2 px-1 font-mono text-[10px] tracking-[0.04em] text-muted truncate"
+          className="mt-2 px-1 font-mono text-[10px] tracking-[0.04em] text-foreground/70 truncate"
           title={versionTitulo}
         >
           {versionTexto}

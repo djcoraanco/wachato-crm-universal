@@ -30,7 +30,7 @@ export function InmobiliariaModuleView() {
             </span>
             <b className="text-sm font-bold text-fg block">{p.titulo}</b>
             <p className="text-accent font-display font-bold text-base">{p.precio}</p>
-            <p className="text-muted flex items-center gap-1">
+            <p className="text-foreground/80 font-medium flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" /> {p.zona} · {p.hab > 0 ? `${p.hab} habs` : "Comercial"}
             </p>
           </div>
@@ -47,7 +47,7 @@ export function ServiciosModuleView() {
         <Briefcase className="h-5 w-5 text-accent" />
         <h3 className="text-sm font-bold text-fg">Proyectos, Horas y Cotizaciones</h3>
       </div>
-      <p className="text-muted leading-relaxed">
+      <p className="text-foreground/80 font-medium leading-relaxed">
         Gestión de horas profesionales, propuestas comerciales y generación automática de contratos de servicios con firma electrónica vía WhatsApp.
       </p>
       <div className="p-3 bg-panel2 border border-line rounded-lg text-accent font-mono">
@@ -64,7 +64,7 @@ export function EducacionModuleView() {
         <GraduationCap className="h-5 w-5 text-accent" />
         <h3 className="text-sm font-bold text-fg">Cursos, Alumnos y Admisiones</h3>
       </div>
-      <p className="text-muted leading-relaxed">
+      <p className="text-foreground/80 font-medium leading-relaxed">
         Matrículas de estudiantes por chat, recordatorios de inicio de clases, temarios descargables y encuestas de satisfacción.
       </p>
       <div className="p-3 bg-panel2 border border-line rounded-lg text-accent font-mono">
@@ -81,7 +81,7 @@ export function LogisticaModuleView() {
         <Truck className="h-5 w-5 text-accent" />
         <h3 className="text-sm font-bold text-fg">Tracking de Envíos & Despacho</h3>
       </div>
-      <p className="text-muted leading-relaxed">
+      <p className="text-foreground/80 font-medium leading-relaxed">
         Consultas de número de guía por WhatsApp con respuesta instantánea del bot sobre estado de tránsito y ubicación estimada del paquete.
       </p>
       <div className="p-3 bg-panel2 border border-line rounded-lg text-accent font-mono">

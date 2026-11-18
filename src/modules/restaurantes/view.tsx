@@ -95,7 +95,7 @@ export function RestaurantesModuleView() {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold font-display transition-colors ${
               tab === item.id
                 ? "bg-accent text-on-accent"
-                : "bg-panel2 text-muted hover:text-fg hover:bg-panel"
+                : "bg-panel2 text-foreground font-semibold hover:text-accent border border-line"
             }`}
           >
             <item.icon className="h-4 w-4" />
@@ -145,7 +145,7 @@ export function RestaurantesModuleView() {
                       {m.estado}
                     </span>
                   </div>
-                  <div className="text-xs text-muted">
+                  <div className="text-xs text-foreground/80 font-medium">
                     <p>{m.zona}</p>
                     <p>Capacidad: {m.capacidad} personas</p>
                   </div>
@@ -191,7 +191,7 @@ export function RestaurantesModuleView() {
 
           <div className="overflow-x-auto rounded-xl border border-line bg-panel">
             <table className="w-full text-left text-xs">
-              <thead className="bg-panel2/60 text-muted uppercase font-semibold text-[11px] border-b border-line">
+              <thead className="bg-panel2 text-foreground/75 uppercase font-bold text-[11px] border-b border-line">
                 <tr>
                   <th className="p-3">Plato</th>
                   <th className="p-3">Categoría</th>
@@ -204,8 +204,8 @@ export function RestaurantesModuleView() {
                 {menu.map((p) => (
                   <tr key={p.id} className="hover:bg-panel2/30">
                     <td className="p-3 font-semibold">{p.nombre}</td>
-                    <td className="p-3 text-muted">{p.categoria}</td>
-                    <td className="p-3 text-muted">
+                    <td className="p-3 text-foreground/80 font-medium">{p.categoria}</td>
+                    <td className="p-3 text-foreground/80">
                       {p.alergenos.length > 0 ? p.alergenos.join(", ") : "Ninguno"}
                     </td>
                     <td className="p-3 text-right font-bold text-accent font-display">
@@ -254,7 +254,7 @@ export function RestaurantesModuleView() {
               >
                 <div className="flex items-center justify-between border-b border-line/60 pb-2">
                   <b className="text-base text-accent font-bold">MESA #{c.mesa}</b>
-                  <span className="text-muted">{c.hora}</span>
+                  <span className="text-foreground/75 font-medium">{c.hora}</span>
                   <span className="px-2 py-0.5 rounded bg-panel2 text-[10px] text-fg uppercase font-bold">
                     {c.estado}
                   </span>

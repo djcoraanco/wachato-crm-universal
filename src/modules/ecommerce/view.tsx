@@ -66,7 +66,7 @@ export function EcommerceModuleView() {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold font-display transition-colors ${
               tab === item.id
                 ? "bg-accent text-on-accent"
-                : "bg-panel2 text-muted hover:text-fg hover:bg-panel"
+                : "bg-panel2 text-foreground font-semibold hover:text-accent border border-line"
             }`}
           >
             <item.icon className="h-4 w-4" />
@@ -104,7 +104,7 @@ export function EcommerceModuleView() {
 
           <div className="overflow-x-auto rounded-xl border border-line bg-panel">
             <table className="w-full text-left text-xs">
-              <thead className="bg-panel2/60 text-muted uppercase font-semibold text-[11px] border-b border-line">
+              <thead className="bg-panel2 text-foreground/75 uppercase font-bold text-[11px] border-b border-line">
                 <tr>
                   <th className="p-3">SKU</th>
                   <th className="p-3">Producto</th>
@@ -117,9 +117,9 @@ export function EcommerceModuleView() {
               <tbody className="divide-y divide-line/60 text-fg">
                 {productos.map((prod) => (
                   <tr key={prod.id} className="hover:bg-panel2/30">
-                    <td className="p-3 font-mono text-[11px] text-muted">{prod.sku}</td>
+                    <td className="p-3 font-mono text-[11px] text-foreground/80 font-medium">{prod.sku}</td>
                     <td className="p-3 font-semibold">{prod.nombre}</td>
-                    <td className="p-3 text-muted">
+                    <td className="p-3 text-foreground/80">
                       <div className="flex gap-1 flex-wrap">
                         {prod.variantes.map((v) => (
                           <span
@@ -134,7 +134,7 @@ export function EcommerceModuleView() {
                     <td className="p-3 text-right font-bold text-fg">
                       {prod.stockPrincipal} uds
                     </td>
-                    <td className="p-3 text-right font-bold text-muted">
+                    <td className="p-3 text-right font-bold text-foreground/80">
                       {prod.stockSecundario} uds
                     </td>
                     <td className="p-3 text-right font-bold text-accent font-display">

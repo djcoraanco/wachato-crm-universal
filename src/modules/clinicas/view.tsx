@@ -95,7 +95,7 @@ export function ClinicasModuleView() {
             className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold font-display transition-colors ${
               tab === item.id
                 ? "bg-accent text-on-accent"
-                : "bg-panel2 text-muted hover:text-fg hover:bg-panel"
+                : "bg-panel2 text-foreground font-semibold hover:text-accent border border-line"
             }`}
           >
             <item.icon className="h-4 w-4" />
@@ -110,7 +110,7 @@ export function ClinicasModuleView() {
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-sm font-bold text-fg">Próximas Citas Médicas</h3>
-              <p className="text-xs text-muted">
+              <p className="text-xs text-foreground/80 font-medium">
                 El sistema dispara recordatorio interactivo por WhatsApp 24 horas antes para confirmación con 1 clic.
               </p>
             </div>
@@ -131,7 +131,7 @@ export function ClinicasModuleView() {
                 <div className="flex items-center justify-between border-b border-line/60 pb-2">
                   <div>
                     <b className="text-sm font-bold text-fg block">{cita.paciente}</b>
-                    <span className="text-muted">{cita.telefono}</span>
+                    <span className="text-foreground/75 font-medium">{cita.telefono}</span>
                   </div>
                   {cita.confirmadaWa ? (
                     <span className="flex items-center gap-1 text-accent font-semibold bg-accent-soft px-2 py-0.5 rounded-full text-[11px]">
@@ -144,7 +144,7 @@ export function ClinicasModuleView() {
                   )}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-muted">
+                <div className="grid grid-cols-2 gap-2 text-foreground/85 font-medium">
                   <div>
                     <span className="block text-[10px] uppercase font-bold text-fg">Especialista</span>
                     <span>{cita.doctor}</span>

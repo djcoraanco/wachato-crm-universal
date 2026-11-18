@@ -19,7 +19,11 @@ export function WachatoTopbar({
     if (path.startsWith("/lab")) return "Laboratorio";
     if (path.startsWith("/bookings") || path.startsWith("/calendar")) return "Calendario";
     if (path.startsWith("/results") || path.startsWith("/analytics")) return "Estadísticas";
-    if (path.startsWith("/settings")) return "Conexiones y Meta";
+    if (path.startsWith("/modules")) return "Módulos Sectoriales";
+    if (path.startsWith("/agency")) return "Agencia Partner";
+    if (path.startsWith("/connections")) return "Conexiones y Meta";
+    if (path.startsWith("/admin")) return "Super Admin";
+    if (path.startsWith("/settings")) return "Ajustes";
     if (path.startsWith("/onboarding")) return "Guía de inicio";
     return "CRM";
   };
@@ -37,7 +41,7 @@ export function WachatoTopbar({
         <button
           onClick={onOpenNav}
           aria-label="Abrir menú"
-          className="lg:hidden p-1.5 rounded-lg text-muted hover:text-fg hover:bg-panel2 transition-colors"
+          className="lg:hidden p-1.5 rounded-lg text-foreground/80 hover:text-accent hover:bg-panel2 transition-colors"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -46,7 +50,7 @@ export function WachatoTopbar({
         {getTitle(pathname)}
       </h1>
       <div className="flex-1" />
-      <span className="text-muted text-[13px] font-medium hidden sm:inline-block">
+      <span className="text-foreground/80 text-[13px] font-semibold hidden sm:inline-block">
         {fechaCapitalizada}
       </span>
     </header>

@@ -34,7 +34,7 @@ export default async function ModuleDetailPage({
         <div className="flex items-center gap-3">
           <Link
             href="/modules"
-            className="p-2 rounded-lg bg-panel2 border border-line text-muted hover:text-fg hover:border-accent transition-colors"
+            className="p-2 rounded-lg bg-panel2 border border-line text-foreground/80 hover:text-accent hover:border-accent transition-colors"
             title="Volver al Catálogo de Módulos"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -48,7 +48,7 @@ export default async function ModuleDetailPage({
                 <CheckCircle2 className="h-3 w-3" /> Precompilado v{mod.version}
               </span>
             </div>
-            <p className="text-xs text-muted mt-0.5">{mod.description}</p>
+            <p className="text-xs text-foreground/85 font-medium mt-0.5">{mod.description}</p>
           </div>
         </div>
       </div>

@@ -127,7 +127,7 @@ export function ModulesClient() {
           <h1 className="font-display text-2xl font-bold tracking-tight text-fg">
             Catálogo de Módulos Sectoriales
           </h1>
-          <p className="text-sm text-muted">
+          <p className="text-sm text-foreground/85 font-medium">
             Activa las herramientas de IA, esquemas de pipeline y flujos especializados para tu industria con un solo clic.
           </p>
         </div>
@@ -148,7 +148,7 @@ export function ModulesClient() {
               "rounded-full px-3 py-1.5 font-semibold whitespace-nowrap transition-colors",
               selectedCat === cat
                 ? "bg-accent text-on-accent shadow-sm"
-                : "bg-panel text-muted hover:text-fg hover:bg-panel2"
+                : "bg-panel2 text-foreground font-semibold hover:text-accent border border-line"
             )}
           >
             {CATEGORY_LABELS[cat]}
@@ -188,7 +188,7 @@ export function ModulesClient() {
                   "flex flex-col justify-between rounded-xl border p-5 shadow-sm transition-all",
                   isActive
                     ? "border-accent/40 bg-panel shadow-md"
-                    : "border-line bg-panel opacity-85 hover:opacity-100"
+                    : "border-line bg-panel hover:border-line/80"
                 )}
               >
                 <div className="space-y-3">
@@ -199,7 +199,7 @@ export function ModulesClient() {
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border",
                           isActive
                             ? "bg-accent/15 border-accent/30 text-accent"
-                            : "bg-panel2 border-line text-muted"
+                            : "bg-panel2 border-line text-foreground/70"
                         )}
                       >
                         <Icon className="h-5 w-5" />
@@ -215,7 +215,7 @@ export function ModulesClient() {
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] font-mono text-muted">
+                        <span className="text-[11px] font-mono text-foreground/70">
                           v{m.version} · {m.author}
                         </span>
                       </div>
@@ -231,14 +231,14 @@ export function ModulesClient() {
                     </div>
                   </div>
 
-                  <p className="text-xs leading-relaxed text-muted">
+                  <p className="text-xs leading-relaxed text-foreground/80 font-normal">
                     {m.description}
                   </p>
 
                   {/* Herramientas de IA */}
                   {m.tools && m.tools.length > 0 && (
                     <div className="space-y-1.5 pt-2">
-                      <span className="text-[10.5px] font-semibold text-fg/80 uppercase tracking-wider">
+                      <span className="text-[10.5px] font-bold text-foreground uppercase tracking-wider">
                         Herramientas IA ({m.tools.length})
                       </span>
                       <div className="flex flex-wrap gap-1.5">
@@ -257,10 +257,10 @@ export function ModulesClient() {
                   {/* Pipeline */}
                   {m.pipelineTemplate && (
                     <div className="space-y-1 pt-1">
-                      <span className="text-[10.5px] font-semibold text-fg/80 uppercase tracking-wider">
+                      <span className="text-[10.5px] font-bold text-foreground uppercase tracking-wider">
                         Pipeline sugerido:
                       </span>
-                      <div className="flex flex-wrap items-center gap-1 text-[11px] text-muted">
+                      <div className="flex flex-wrap items-center gap-1 text-[11px] text-foreground/80 font-medium">
                         {m.pipelineTemplate.stages.map((st, idx) => (
                           <span key={st.name} className="flex items-center gap-1">
                             <span>{st.name}</span>
@@ -278,14 +278,14 @@ export function ModulesClient() {
                   <div className="flex items-center gap-2">
                     <span
                       className={cn(
-                        "flex items-center gap-1 font-semibold",
-                        isActive ? "text-emerald-400" : "text-muted"
+                        "flex items-center gap-1.5 font-semibold",
+                        isActive ? "text-emerald-500 dark:text-emerald-400" : "text-foreground/70"
                       )}
                     >
                       <span
                         className={cn(
                           "h-1.5 w-1.5 rounded-full",
-                          isActive ? "bg-emerald-500" : "bg-muted"
+                          isActive ? "bg-emerald-500" : "bg-foreground/40"
                         )}
                       />
                       {isActive ? "Módulo Activo" : "Inactivo"}

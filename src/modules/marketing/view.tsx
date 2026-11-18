@@ -18,7 +18,7 @@ export function MarketingModuleView() {
           <h3 className="text-base font-bold font-display text-fg">
             Atribución Meta CAPI & Webhooks de Automatización (n8n / Make)
           </h3>
-          <p className="text-xs text-muted mt-0.5">
+          <p className="text-xs text-foreground/80 font-medium mt-0.5">
             Sincroniza eventos de conversión en tiempo real de WhatsApp con Facebook Ads y conecta flujos avanzados sin código.
           </p>
         </div>
@@ -34,7 +34,7 @@ export function MarketingModuleView() {
                 POST Activo
               </span>
             </div>
-            <p className="text-xs text-muted">
+            <p className="text-xs text-foreground/80 font-medium">
               El CRM emite un payload cada vez que un lead avanza de etapa o se califica.
             </p>
             <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export function MarketingModuleView() {
                 type="text"
                 readOnly
                 value="https://crm.dominio.com/api/webhooks/marketing/outgoing"
-                className="flex-1 bg-panel border border-line rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-muted select-all"
+                className="flex-1 bg-panel border border-line rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-foreground/80 select-all"
               />
               <button
                 onClick={() => {
@@ -62,7 +62,7 @@ export function MarketingModuleView() {
             <b className="text-xs font-bold text-fg flex items-center gap-1.5">
               <Activity className="h-4 w-4 text-accent" /> Parámetros UTM & Anuncios Meta
             </b>
-            <p className="text-xs text-muted">
+            <p className="text-xs text-foreground/80 font-medium">
               Captura automática de <code>ctwa_clid</code>, <code>utm_source</code>, <code>utm_campaign</code> y <code>utm_adset</code> al iniciar chat por WhatsApp.
             </p>
             <div className="p-2.5 bg-panel border border-line rounded-lg text-[11px] font-mono text-accent">

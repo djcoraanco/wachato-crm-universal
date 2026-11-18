@@ -44,8 +44,8 @@ const config: Config = {
           foreground: "var(--danger-fg)",
         },
         muted: {
-          DEFAULT: "var(--bg-panel)",
-          foreground: "var(--text-3)",
+          DEFAULT: "var(--muted, var(--text-2))",
+          foreground: "var(--muted, var(--text-2))",
         },
         accent: {
           DEFAULT: "var(--bg-hover)",
